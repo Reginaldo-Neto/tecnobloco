@@ -14,6 +14,9 @@ router.get('/me', authenticate, AuthController.me.bind(AuthController));
 // POST /api/auth/logout  [requer autenticação]
 router.post('/logout', authenticate, AuthController.logout.bind(AuthController));
 
+// PUT /api/auth/profile  [requer autenticação]
+router.put('/profile', authenticate, AuthController.atualizarPerfil.bind(AuthController));
+
 // PUT /api/auth/alterar-senha  [requer autenticação]
 router.put('/alterar-senha', authenticate, AuthController.alterarSenha.bind(AuthController));
 

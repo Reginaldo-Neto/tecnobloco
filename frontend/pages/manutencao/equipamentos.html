@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Máquinas — Tecnobloco</title>
+  <link rel="icon" type="image/png" href="../../assets/img/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="../../assets/css/styles.css" />
   <style>
@@ -198,6 +199,12 @@
   <div id="sidebar-container"></div>
   <div id="topbar-container"></div>
   <main class="main-content" id="main-content">
+
+    <!-- Sub-nav -->
+    <nav class="module-nav">
+      <a href="/pages/manutencao/index.html" class="module-nav-item">🔧 Ordens de Serviço</a>
+      <a href="/pages/manutencao/equipamentos.html" class="module-nav-item active">⚙️ Máquinas</a>
+    </nav>
 
     <!-- Stats -->
     <div class="eq-stat-grid">
@@ -430,11 +437,10 @@ initPage({
   title:       'Máquinas e Equipamentos',
   breadcrumb:  ['Manutenção', 'Máquinas'],
   activeMenu:  'manutencao',
-  requireNivel: 2,
-  departamentos: ['Manutenção'],
+  requireNivel: 1,
   onReady(user) {
     _userNivel = user.nivel_acesso || 0;
-    if (_userNivel >= 4) {
+    if (_userNivel >= 3) {
       document.getElementById('btn-nova-maquina').style.display = 'inline-flex';
     }
     _carregarDeptos();
@@ -446,7 +452,7 @@ initPage({
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function _carregarDeptos() {
   try {
-    const res = await API.get('/global/departamentos');
+    const res = await API.get('/manutencao/departamentos');
     _deptos = Array.isArray(res) ? res : (res.data || []);
     const sel = document.getElementById('filter-depto');
     const selNM = document.getElementById('nm-depto');

@@ -13,25 +13,7 @@ const CAMPOS_LOGIN = Object.freeze({ cpf: 'cpf', email: 'email' });
 
 // Mapeamento departamento → rota padrão de dashboard
 const DEPT_ROTA = {
-  'TI':              '/pages/ti/index.html',
-  'SAC':             '/pages/vendas/index.html',
-  'Limpeza':         '/pages/limpeza/index.html',
-  'Lavanderia':      '/pages/lavanderia/index.html',
-  'Serviços Gerais': '/pages/manutencao/index.html',
-  'Frotas':          '/pages/frota/index.html',
-  'Manutenção':      '/pages/manutencao/index.html',
-  'Estoque':         '/pages/estoque/index.html',
-  'Qualidade':       '/pages/qualidade/index.html',
-  'Produção':        '/pages/producao/index.html',
-  'Administração':   '/pages/dashboard.html',
-  'RH':              '/pages/rh/index.html',
-  'Vendas':          '/pages/vendas/index.html',
-  'Financeiro':      '/pages/financeiro/index.html',
-  'Segurança':       '/pages/seguranca/index.html',
-  'Diretoria':       '/pages/dashboard.html',
-  'Compras':         '/pages/compras/index.html',
-  'Fornecedores':    '/pages/vendas/index.html',
-  'Clientes':        '/pages/vendas/index.html',
+  'Manutenção': '/pages/manutencao/index.html',
 };
 
 /**
@@ -107,6 +89,14 @@ class AuthService {
     );
     if (!rows.length) throw unauthorized('Usuário não encontrado');
     return rows[0];
+  }
+
+  async atualizarPerfil(userId, nome) {
+    nome = (nome || '').trim();
+    if (!nome) throw new AppError('Informe o nome', HTTP.BAD_REQUEST);
+    if (nome.length > 100) throw new AppError('Nome muito longo', HTTP.BAD_REQUEST);
+    await pool.execute('UPDATE usuarios SET nome = ? WHERE id = ?', [nome, userId]);
+    return this.me(userId);
   }
 
   async alterarSenha(userId, senhaAtual, novaSenha) {

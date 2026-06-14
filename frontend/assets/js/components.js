@@ -49,55 +49,25 @@ function escapeHtml(str) {
 // ── i18n ─────────────────────────────────────────────────────────────────────
 const LABELS = {
   pt: {
-    dashboard: 'Dashboard',
-    rh: 'Recursos Humanos',
-    financeiro: 'Financeiro',
-    producao: 'Produção',
-    qualidade: 'Qualidade',
-    estoque: 'Estoque',
+    dashboard:  'Dashboard',
     manutencao: 'Manutenção',
-    sac: 'SAC',
-    vendas: 'Vendas',
-    compras: 'Compras',
-    frota: 'Frota',
-    limpeza: 'Limpeza',
-    lavanderia: 'Lavanderia',
-    'servicos-gerais': 'Serviços Gerais',
-    ti: 'TI',
-    seguranca: 'Segurança',
-    juridico: 'Jurídico',
-    admin: 'Administração',
-    logout: 'Sair',
-    theme_light: 'Tema claro',
-    theme_dark: 'Tema escuro',
-    loading: 'Carregando...',
-    confirm_yes: 'Confirmar',
-    confirm_no: 'Cancelar',
+    admin:      'Administração',
+    logout:       'Sair',
+    theme_light:  'Tema claro',
+    theme_dark:   'Tema escuro',
+    loading:      'Carregando...',
+    confirm_yes:  'Confirmar',
+    confirm_no:   'Cancelar',
     confirm_title: 'Confirmação',
-    no_access: 'Sem permissão de acesso.',
+    no_access:    'Sem permissão de acesso.',
   },
   en: {
-    dashboard: 'Dashboard',
-    rh: 'Human Resources',
-    financeiro: 'Finance',
-    producao: 'Production',
-    qualidade: 'Quality',
-    estoque: 'Inventory',
+    dashboard:  'Dashboard',
     manutencao: 'Maintenance',
-    sac: 'Customer Service',
-    vendas: 'Sales',
-    compras: 'Purchasing',
-    frota: 'Fleet',
-    limpeza: 'Cleaning',
-    lavanderia: 'Laundry',
-    'servicos-gerais': 'General Services',
-    ti: 'IT',
-    seguranca: 'Security',
-    juridico: 'Legal',
-    admin: 'Administration',
-    logout: 'Logout',
+    admin:      'Administration',
+    logout:      'Logout',
     theme_light: 'Light theme',
-    theme_dark: 'Dark theme',
+    theme_dark:  'Dark theme',
     loading: 'Loading...',
     confirm_yes: 'Confirm',
     confirm_no: 'Cancel',
@@ -105,32 +75,17 @@ const LABELS = {
     no_access: 'Access denied.',
   },
   es: {
-    dashboard: 'Panel',
-    rh: 'Recursos Humanos',
-    financeiro: 'Finanzas',
-    producao: 'Producción',
-    qualidade: 'Calidad',
-    estoque: 'Inventario',
+    dashboard:  'Panel',
     manutencao: 'Mantenimiento',
-    sac: 'Atención al Cliente',
-    vendas: 'Ventas',
-    compras: 'Compras',
-    frota: 'Flota',
-    limpeza: 'Limpieza',
-    lavanderia: 'Lavandería',
-    'servicos-gerais': 'Servicios Generales',
-    ti: 'TI',
-    seguranca: 'Seguridad',
-    juridico: 'Legal',
-    admin: 'Administración',
-    logout: 'Salir',
-    theme_light: 'Tema claro',
-    theme_dark: 'Tema oscuro',
-    loading: 'Cargando...',
-    confirm_yes: 'Confirmar',
-    confirm_no: 'Cancelar',
+    admin:      'Administración',
+    logout:       'Salir',
+    theme_light:  'Tema claro',
+    theme_dark:   'Tema oscuro',
+    loading:      'Cargando...',
+    confirm_yes:  'Confirmar',
+    confirm_no:   'Cancelar',
     confirm_title: 'Confirmación',
-    no_access: 'Sin permiso de acceso.',
+    no_access:    'Sin permiso de acceso.',
   },
 };
 
@@ -158,29 +113,9 @@ function t(key) {
  *   5. departamento do usuário está na lista → visível
  */
 const MENU_ITEMS = [
-  // ── Global ───────────────────────────────────────────────────────────────────
-  { id: 'dashboard',  icon: '▦',  labelKey: 'dashboard',  href: '/pages/dashboard.html',          minNivel: 0, departamentos: null },
-
-  // ── Por setor ────────────────────────────────────────────────────────────────
-  { id: 'rh',         icon: '👤', labelKey: 'rh',         href: '/pages/rh/index.html',            minNivel: 0, departamentos: ['RH', 'Administração'] },
-  { id: 'financeiro', icon: '💰', labelKey: 'financeiro', href: '/pages/financeiro/index.html',    minNivel: 2, departamentos: ['Financeiro'] },
-  { id: 'producao',   icon: '🏭', labelKey: 'producao',   href: '/pages/producao/index.html',      minNivel: 0, departamentos: ['Produção'] },
-  { id: 'qualidade',  icon: '✅', labelKey: 'qualidade',  href: '/pages/qualidade/index.html',     minNivel: 0, departamentos: ['Qualidade'] },
-  { id: 'estoque',    icon: '📦', labelKey: 'estoque',    href: '/pages/estoque/index.html',       minNivel: 0, departamentos: ['Estoque', 'Compras'] },
-  { id: 'manutencao', icon: '🔧', labelKey: 'manutencao', href: '/pages/manutencao/index.html',    minNivel: 0, departamentos: ['Manutenção'] },
-  { id: 'sac',        icon: '📞', labelKey: 'sac',        href: '/pages/sac/index.html',           minNivel: 0, departamentos: ['SAC'] },
-  { id: 'vendas',     icon: '📈', labelKey: 'vendas',     href: '/pages/vendas/index.html',        minNivel: 1, departamentos: ['Vendas', 'Clientes'] },
-  { id: 'compras',    icon: '🛒', labelKey: 'compras',    href: '/pages/compras/index.html',       minNivel: 1, departamentos: ['Compras'] },
-  { id: 'frota',      icon: '🚛', labelKey: 'frota',      href: '/pages/frota/index.html',         minNivel: 0, departamentos: ['Frotas'] },
-  { id: 'limpeza',    icon: '🧹', labelKey: 'limpeza',    href: '/pages/limpeza/index.html',       minNivel: 0, departamentos: ['Limpeza'] },
-  { id: 'lavanderia',       icon: '👕', labelKey: 'lavanderia',       href: '/pages/lavanderia/index.html',       minNivel: 0, departamentos: ['Lavanderia'] },
-  { id: 'servicos-gerais', icon: '🌿', labelKey: 'servicos-gerais', href: '/pages/servicos-gerais/index.html', minNivel: 0, departamentos: ['Serviços Gerais'] },
-  { id: 'ti',              icon: '💻', labelKey: 'ti',              href: '/pages/ti/index.html',              minNivel: 0, departamentos: null },
-  { id: 'seguranca',  icon: '🛡', labelKey: 'seguranca',  href: '/pages/seguranca/index.html',     minNivel: 2, departamentos: ['Segurança do Trabalho'] },
-  { id: 'juridico',   icon: '⚖',  labelKey: 'juridico',   href: '/pages/juridico/index.html',      minNivel: 3, departamentos: ['Jurídico'] },
-
-  // ── Admin Master only ────────────────────────────────────────────────────────
-  { id: 'admin',      icon: '⚙',  labelKey: 'admin',      href: '/pages/admin/index.html',         minNivel: 7, departamentos: null },
+  { id: 'dashboard',  icon: '▦',  labelKey: 'dashboard',  href: '/pages/dashboard.html',        minNivel: 0, departamentos: null },
+  { id: 'manutencao', icon: '🔧', labelKey: 'manutencao', href: '/pages/manutencao/index.html', minNivel: 0, departamentos: null },
+  { id: 'admin',      icon: '⚙',  labelKey: 'admin',      href: '/pages/admin/index.html',      minNivel: 7, departamentos: null },
 ];
 
 /**
@@ -225,9 +160,9 @@ function renderSidebar(activeMenu) {
   const html = `
     <aside class="sidebar" id="app-sidebar">
       <div class="sidebar-logo">
-        <div class="sidebar-logo-icon">T</div>
+        <img src="/assets/img/logo.png" alt="" class="sidebar-logo-img-icon" />
         <div>
-          <div class="sidebar-logo-text">Tecnobloco</div>
+          <img src="/assets/img/tecnobloco.png" alt="Tecnobloco" class="sidebar-logo-img-text" />
           <div class="sidebar-logo-sub">Gestão Industrial</div>
         </div>
       </div>
@@ -290,10 +225,18 @@ function renderTopbar(title, breadcrumb) {
         <button class="topbar-btn" id="theme-toggle" title="${isDark ? t('theme_light') : t('theme_dark')}">
           ${isDark ? '☀' : '🌙'}
         </button>
-        <button class="topbar-btn notif-btn" id="notif-btn" title="Notificações" style="position:relative;">
-          🔔
-          <span class="notif-badge" id="notif-count" style="display:none;">0</span>
-        </button>
+        <div class="notif-wrap">
+          <button class="topbar-btn notif-btn" id="notif-btn" title="Notificações" style="position:relative;">
+            🔔
+            <span class="notif-badge" id="notif-count" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-dropdown-header">Notificações</div>
+            <div class="notif-dropdown-list" id="notif-dropdown-list">
+              <div class="notif-dropdown-empty">Carregando...</div>
+            </div>
+          </div>
+        </div>
         <button class="topbar-btn" id="sidebar-toggle" title="Menu">☰</button>
         <div class="topbar-user" id="user-menu-toggle" title="${displayName}">
           <div class="topbar-avatar">${initials}</div>
@@ -341,21 +284,43 @@ function renderTopbar(title, breadcrumb) {
     window.location.reload();
   });
 
+  // ── Hamburger / sidebar toggle ──────────────────────────────
   const sidebarToggle = document.getElementById('sidebar-toggle');
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', () => {
-      const sidebar = document.getElementById('app-sidebar');
-      if (sidebar) sidebar.classList.toggle('open');
+      const isMobile = window.innerWidth <= 767;
+      if (isMobile) {
+        const sidebar  = document.getElementById('app-sidebar');
+        const overlay  = document.getElementById('sidebar-overlay');
+        if (sidebar) sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('open');
+      } else {
+        document.body.classList.toggle('sidebar-collapsed');
+      }
     });
   }
 
-  // Notification bell — polls alert count via dashboard/alerts when available
-  const notifBtn = document.getElementById('notif-btn');
-  if (notifBtn) {
-    notifBtn.addEventListener('click', () => {
-      window.location.href = '/pages/dashboard.html';
+  // ── Notification bell dropdown ───────────────────────────────
+  const notifBtn      = document.getElementById('notif-btn');
+  const notifDropdown = document.getElementById('notif-dropdown');
+  if (notifBtn && notifDropdown) {
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = notifDropdown.classList.toggle('open');
+      if (isOpen) _loadNotifDropdown();
+    });
+    document.addEventListener('click', (e) => {
+      if (!notifDropdown.contains(e.target) && e.target !== notifBtn) {
+        notifDropdown.classList.remove('open');
+      }
     });
     _pollNotifCount();
+  }
+
+  // ── User profile modal ───────────────────────────────────────
+  const userToggle = document.getElementById('user-menu-toggle');
+  if (userToggle) {
+    userToggle.addEventListener('click', _openProfileModal);
   }
 }
 
@@ -376,6 +341,122 @@ function _pollNotifCount() {
   }
   check();
   setInterval(check, 30000);
+}
+
+// ── Notification dropdown loader ──────────────────────────────────────────────
+async function _loadNotifDropdown() {
+  const listEl = document.getElementById('notif-dropdown-list');
+  if (!listEl) return;
+  try {
+    const data   = await API.get('/dashboard/alerts');
+    const alerts = Array.isArray(data) ? data : (data.items || data.data || []);
+    if (!alerts.length) {
+      listEl.innerHTML = '<div class="notif-dropdown-empty">Nenhuma notificação pendente</div>';
+      return;
+    }
+    listEl.innerHTML = alerts.slice(0, 10).map(a => `
+      <div class="notif-dropdown-item">
+        <div style="font-weight:500;color:var(--text-primary);font-size:12px;">${escapeHtml(a.titulo || a.message || a.tipo || 'Alerta')}</div>
+        ${(a.descricao || a.detail) ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${escapeHtml(a.descricao || a.detail)}</div>` : ''}
+      </div>
+    `).join('');
+  } catch {
+    listEl.innerHTML = '<div class="notif-dropdown-empty">Sem notificações</div>';
+  }
+}
+
+// ── User profile modal ─────────────────────────────────────────────────────────
+function _openProfileModal() {
+  const user = API.getUser();
+  if (!user) return;
+
+  const initials = (user.nome || '?').replace(/&\w+;/g, '').trim()
+    .split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+  const NIVEL_LABEL = ['Menor Aprendiz','Auxiliar','Técnico','Pleno','Sênior','Especialista','Diretor','Admin'];
+  const nivelLabel  = NIVEL_LABEL[user.nivel_acesso] || `Nível ${user.nivel_acesso}`;
+
+  const modal = openModal({
+    title: 'Meu Perfil',
+    size:  'sm',
+    body: `
+      <div style="text-align:center;margin-bottom:var(--space-5);">
+        <div class="topbar-avatar" style="width:64px;height:64px;font-size:26px;margin:0 auto 8px;">${initials}</div>
+        <div style="font-size:var(--font-size-sm);color:var(--text-muted);">${escapeHtml(user.departamento || '')} — ${nivelLabel}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-control" id="profile-nome" value="${escapeHtml(user.nome || '')}" maxlength="100" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-mail / CPF</label>
+        <input type="text" class="form-control" value="${escapeHtml(user.email || user.cpf || '')}" disabled />
+      </div>
+      <div style="border-top:1px solid var(--border-color);margin:var(--space-4) 0;padding-top:var(--space-4);">
+        <div style="font-size:var(--font-size-sm);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-3);">Alterar senha</div>
+        <div class="form-group">
+          <label class="form-label">Senha atual</label>
+          <input type="password" class="form-control" id="profile-senha-atual" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nova senha</label>
+          <input type="password" class="form-control" id="profile-nova-senha" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
+        </div>
+      </div>
+      <div id="profile-error" style="display:none;" class="alert alert-danger"><span class="alert-icon">⚠</span><span id="profile-error-text"></span></div>
+    `,
+    footer: `
+      <button class="btn btn-secondary" id="profile-cancel-btn">Cancelar</button>
+      <button class="btn btn-primary" id="profile-save-btn">Salvar</button>
+    `,
+  });
+
+  modal.el.querySelector('#profile-cancel-btn').addEventListener('click', modal.close);
+
+  modal.el.querySelector('#profile-save-btn').addEventListener('click', async () => {
+    const nome       = (modal.el.querySelector('#profile-nome').value || '').trim();
+    const senhaAtual = modal.el.querySelector('#profile-senha-atual').value;
+    const novaSenha  = modal.el.querySelector('#profile-nova-senha').value;
+    const errorBox   = modal.el.querySelector('#profile-error');
+    const errorText  = modal.el.querySelector('#profile-error-text');
+    const saveBtn    = modal.el.querySelector('#profile-save-btn');
+
+    function showErr(msg) {
+      errorText.textContent = msg;
+      errorBox.style.display = 'flex';
+    }
+    errorBox.style.display = 'none';
+
+    if (!nome) { showErr('Informe o nome.'); return; }
+
+    saveBtn.disabled = true;
+    try {
+      let changed = false;
+
+      if (nome !== user.nome) {
+        const r = await API.put('/auth/profile', { nome });
+        if (!r.success) throw new Error(r.message || 'Erro ao salvar nome');
+        const stored = API.getUser();
+        if (stored) { stored.nome = nome; localStorage.setItem('tb_user', JSON.stringify(stored)); }
+        changed = true;
+      }
+
+      if (novaSenha) {
+        if (!senhaAtual) { showErr('Informe a senha atual para alterar a senha.'); return; }
+        const r = await API.put('/auth/alterar-senha', { senhaAtual, novaSenha });
+        if (!r.success) throw new Error(r.message || 'Erro ao alterar senha');
+        changed = true;
+      }
+
+      modal.close();
+      if (changed) showToast('Perfil atualizado com sucesso', 'success');
+
+    } catch (err) {
+      showErr(err.message || 'Erro ao salvar');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
 }
 
 // ── initPage ──────────────────────────────────────────────────────────────────
@@ -433,6 +514,19 @@ function initPage(config) {
   _loadFeatureFlags().then(() => {
     renderSidebar(config.activeMenu || '');
     renderTopbar(config.title || 'Tecnobloco', config.breadcrumb || []);
+
+    // Mobile sidebar overlay
+    if (!document.getElementById('sidebar-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.id = 'sidebar-overlay';
+      overlay.className = 'sidebar-overlay';
+      overlay.addEventListener('click', () => {
+        overlay.classList.remove('open');
+        const sidebar = document.getElementById('app-sidebar');
+        if (sidebar) sidebar.classList.remove('open');
+      });
+      document.body.appendChild(overlay);
+    }
 
     // Start server status polling
     _startHealthPoll();

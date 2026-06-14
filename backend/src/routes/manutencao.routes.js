@@ -5,7 +5,8 @@ const fs     = require('fs');
 const multer = require('multer');
 const router = require('express').Router();
 const { authenticate, requireNivel } = require('../middleware/auth.middleware');
-const C = require('../controllers/manutencao/ManutencaoController');
+const C    = require('../controllers/manutencao/ManutencaoController');
+const pool = require('../../config/database');
 
 // ── Multer: upload de manuais PDF ─────────────────────────────────────────────
 const uploadsDir = path.join(__dirname, '../../uploads/manuals');
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/pdf') return cb(null, true);
     cb(new Error('Apenas arquivos PDF são aceitos'));
@@ -32,7 +33,7 @@ router.get('/stats',
   authenticate, requireNivel(1),
   C.getStats.bind(C));
 
-// ── Ordens de Serviço — qualquer funcionário pode criar/ver ──────────────────
+// ── Ordens de Serviço ─────────────────────────────────────────────────────────
 router.get('/os',
   authenticate, requireNivel(1),
   C.listarOS.bind(C));
@@ -45,6 +46,10 @@ router.get('/os/:id',
   authenticate, requireNivel(1),
   C.buscarOS.bind(C));
 
+router.put('/os/:id',
+  authenticate, requireNivel(2),
+  C.atualizarOS.bind(C));
+
 router.put('/os/:id/status',
   authenticate, requireNivel(2),
   C.atualizarStatusOS.bind(C));
@@ -52,29 +57,6 @@ router.put('/os/:id/status',
 router.post('/os/:id/apontar',
   authenticate, requireNivel(2),
   C.apontarOS.bind(C));
-
-// ── Equipamentos — qualquer funcionário pode visualizar ───────────────────────
-router.get('/equipamentos',
-  authenticate, requireNivel(1),
-  C.listarEquipamentos.bind(C));
-
-router.post('/equipamentos',
-  authenticate, requireNivel(3),
-  C.criarEquipamento.bind(C));
-
-router.put('/equipamentos/:id',
-  authenticate, requireNivel(2),
-  C.atualizarEquipamento.bind(C));
-
-router.get('/equipamentos/:id/prontuario',
-  authenticate, requireNivel(1),
-  C.prontuarioEquipamento.bind(C));
-
-// ── Upload de manual PDF ──────────────────────────────────────────────────────
-router.post('/equipamentos/:id/manual',
-  authenticate, requireNivel(2),
-  upload.single('manual'),
-  C.uploadManual.bind(C));
 
 // ── Manutenção Preventiva ─────────────────────────────────────────────────────
 router.get('/preventiva',
@@ -93,18 +75,44 @@ router.post('/preventiva/:id/executar',
   authenticate, requireNivel(2),
   C.executarPreventiva.bind(C));
 
-// ── Ativos ────────────────────────────────────────────────────────────────────
-router.get('/ativos',
-  authenticate, requireNivel(2),
-  C.listarAtivos.bind(C));
+// ── Departamentos (lookup para formulários) ───────────────────────────────────
+router.get('/departamentos',
+  authenticate, requireNivel(1),
+  async (req, res, next) => {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT id, nome FROM departamentos WHERE ativo = 1 ORDER BY nome'
+      );
+      res.json({ success: true, data: rows });
+    } catch (err) { next(err); }
+  }
+);
 
-router.post('/ativos',
-  authenticate, requireNivel(4),
-  C.criarAtivo.bind(C));
+// ── Equipamentos ──────────────────────────────────────────────────────────────
+router.get('/equipamentos',
+  authenticate, requireNivel(1),
+  C.listarEquipamentos.bind(C));
+
+router.post('/equipamentos',
+  authenticate, requireNivel(3),
+  C.criarEquipamento.bind(C));
+
+router.put('/equipamentos/:id',
+  authenticate, requireNivel(2),
+  C.atualizarEquipamento.bind(C));
+
+router.get('/equipamentos/:id/prontuario',
+  authenticate, requireNivel(1),
+  C.prontuarioEquipamento.bind(C));
+
+router.post('/equipamentos/:id/manual',
+  authenticate, requireNivel(2),
+  upload.single('manual'),
+  C.uploadManual.bind(C));
 
 // ── Indicadores ───────────────────────────────────────────────────────────────
 router.get('/indicadores',
-  authenticate, requireNivel(4),
+  authenticate, requireNivel(3),
   C.calcularIndicadores.bind(C));
 
 module.exports = router;

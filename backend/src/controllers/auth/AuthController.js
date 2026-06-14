@@ -54,6 +54,20 @@ class AuthController {
     }
   }
 
+  async atualizarPerfil(req, res, next) {
+    try {
+      const { nome } = req.body;
+      if (!nome || typeof nome !== 'string' || !nome.trim()) {
+        return res.status(HTTP.BAD_REQUEST).json({ success: false, message: 'Informe o nome' });
+      }
+      const usuario = await AuthService.atualizarPerfil(req.user.id, nome.trim());
+      await req.audit(AUDITORIA.ALTERACAO, 'usuarios', req.user.id, { depois: { campo: 'nome' } });
+      res.json({ success: true, usuario, message: 'Perfil atualizado' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async alterarSenha(req, res, next) {
     try {
       const { senhaAtual, novaSenha } = req.body;
