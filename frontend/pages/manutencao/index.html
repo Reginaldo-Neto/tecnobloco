@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manutenção — Tecnobloco</title>
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .os-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    @media (max-width: 700px) { .os-stats { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 400px) { .os-stats { grid-template-columns: 1fr; } }
+
+    .stat-card { background: rgba(255,255,255,0.04); border: 1px solid var(--border-color);
+      border-radius: var(--border-radius); padding: var(--space-4); position: relative; overflow: hidden; }
+    .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background: linear-gradient(90deg, var(--sc-a,#7c3aed), var(--sc-b,#a78bfa)); }
+    .stat-card-label { font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: 6px; }
+    .stat-card-value { font-size: 2rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+    .stat-card.danger  { --sc-a:#ef4444; --sc-b:#f87171; } .stat-card.danger  .stat-card-value { color: #f87171; }
+    .stat-card.warning { --sc-a:#f97316; --sc-b:#fb923c; } .stat-card.warning .stat-card-value { color: #fb923c; }
+    .stat-card.success { --sc-a:#22c55e; --sc-b:#4ade80; } .stat-card.success .stat-card-value { color: #4ade80; }
+
+    .filter-bar { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4); }
+    .filter-bar .form-control { max-width: 180px; }
+    .filter-bar .search-input { flex: 1; min-width: 180px; max-width: 320px; }
+
+    .badge-tipo-corretiva    { background: rgba(239,68,68,.15);   color: #f87171;  border: 1px solid rgba(239,68,68,.3); }
+    .badge-tipo-preventiva   { background: rgba(59,130,246,.15);  color: #60a5fa;  border: 1px solid rgba(59,130,246,.3); }
+    .badge-tipo-emergencial  { background: rgba(251,146,60,.15);  color: #fb923c;  border: 1px solid rgba(251,146,60,.3); }
+    .badge-tipo-preditiva    { background: rgba(124,58,237,.15);  color: #a78bfa;  border: 1px solid rgba(124,58,237,.3); }
+
+    .badge-prio-critica { background: rgba(239,68,68,.2);  color: #f87171; }
+    .badge-prio-alta    { background: rgba(249,115,22,.2); color: #fb923c; }
+    .badge-prio-media   { background: rgba(234,179,8,.2);  color: #fbbf24; }
+    .badge-prio-baixa   { background: rgba(34,197,94,.2);  color: #4ade80; }
+
+    .badge-st-aberta          { background: rgba(59,130,246,.15);  color: #60a5fa; }
+    .badge-st-em_andamento    { background: rgba(234,179,8,.15);   color: #fbbf24; }
+    .badge-st-aguardando_peca { background: rgba(249,115,22,.15);  color: #fb923c; }
+    .badge-st-concluida       { background: rgba(34,197,94,.15);   color: #4ade80; }
+    .badge-st-cancelada       { background: rgba(100,116,139,.15); color: #94a3b8; }
+
+    .os-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+
+    /* Detalhe OS */
+    .os-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3) var(--space-5); margin-bottom: var(--space-4); }
+    @media (max-width: 600px) { .os-detail-grid { grid-template-columns: 1fr; } }
+    .os-detail-field label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+    .os-detail-field p { font-size: var(--font-size-sm); color: var(--text-primary); margin: 0; }
+    .os-detail-field p.empty { color: var(--text-muted); font-style: italic; }
+    .os-detail-field.full { grid-column: 1/-1; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div id="topbar-container"></div>
+  <main class="main-content">
+
+    <!-- Stats -->
+    <div class="os-stats">
+      <div class="stat-card danger">
+        <div class="stat-card-label">OS Abertas</div>
+        <div class="stat-card-value" id="stat-abertas">—</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-card-label">Em Andamento</div>
+        <div class="stat-card-value" id="stat-andamento">—</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-card-label">Concluídas (30d)</div>
+        <div class="stat-card-value" id="stat-concluidas">—</div>
+      </div>
+    </div>
+
+    <!-- Listagem de OS -->
+    <div class="content-card">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
+        <h3 class="card-title">Ordens de Serviço</h3>
+        <div style="display:flex; gap:var(--space-2);">
+          <button class="btn btn-secondary btn-sm" id="btn-refresh">↻ Atualizar</button>
+          <button class="btn btn-primary btn-sm" id="btn-nova-os">+ Nova OS</button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filter-bar">
+        <input type="search" class="form-control search-input" id="os-search" placeholder="Buscar por código, equipamento, descrição..." />
+        <select class="form-control" id="filter-status">
+          <option value="">Todos os status</option>
+          <option value="aberta">Aberta</option>
+          <option value="em_andamento">Em Andamento</option>
+          <option value="aguardando_peca">Aguardando Peça</option>
+          <option value="concluida">Concluída</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <select class="form-control" id="filter-tipo">
+          <option value="">Todos os tipos</option>
+          <option value="corretiva">Corretiva</option>
+          <option value="preventiva">Preventiva</option>
+          <option value="emergencial">Emergencial</option>
+          <option value="preditiva">Preditiva</option>
+        </select>
+      </div>
+
+      <div id="os-table-wrap">
+        <div class="page-loader"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Nova OS
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-nova-os" class="modal-backdrop modal-overlay" style="display:none;">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 class="modal-title">Nova Ordem de Serviço</h3>
+      <button class="modal-close" id="nos-close" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-nova-os" novalidate>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label required" for="nos-equipamento">Máquina / Equipamento</label>
+            <select id="nos-equipamento" class="form-control">
+              <option value="">Selecione a máquina...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required" for="nos-tipo">Tipo de Manutenção</label>
+            <select id="nos-tipo" class="form-control">
+              <option value="corretiva">Corretiva</option>
+              <option value="preventiva">Preventiva</option>
+              <option value="emergencial">Emergencial</option>
+              <option value="preditiva">Preditiva</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="nos-prioridade">Prioridade</label>
+            <select id="nos-prioridade" class="form-control">
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Crítica</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label required" for="nos-descricao">Descrição do Problema</label>
+            <textarea id="nos-descricao" class="form-control" rows="3"
+              placeholder="Descreva o problema ou serviço a ser realizado..." maxlength="2000"></textarea>
+          </div>
+
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label" for="nos-motivo">Motivo da Manutenção</label>
+            <textarea id="nos-motivo" class="form-control" rows="2"
+              placeholder="Ex: Desgaste normal, quebra inesperada, inspeção programada..." maxlength="1000"></textarea>
+          </div>
+
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label" for="nos-causa-raiz">Causa Raiz (se conhecida)</label>
+            <textarea id="nos-causa-raiz" class="form-control" rows="2"
+              placeholder="Ex: Falta de lubrificação, operação incorreta, falha de componente..." maxlength="1000"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="nos-previsao">Previsão de Conclusão</label>
+            <input type="date" id="nos-previsao" class="form-control" />
+          </div>
+
+        </div>
+        <div id="nos-error" class="alert alert-danger" style="display:none; margin-top:var(--space-3);">
+          <span class="alert-icon">⚠</span>
+          <span id="nos-error-text"></span>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="nos-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="nos-submit">Abrir OS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Detalhe da OS
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-os-detail" class="modal-backdrop modal-overlay" style="display:none;">
+  <div class="modal modal-lg" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" id="det-titulo">OS</h3>
+        <div style="font-size:var(--font-size-xs); color:var(--text-muted); margin-top:2px;" id="det-subtitulo"></div>
+      </div>
+      <button class="modal-close" id="det-close" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body" id="det-body">
+      <div class="page-loader"><span class="spinner"></span></div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <div id="det-status-actions" style="display:flex; gap:var(--space-2); flex-wrap:wrap;"></div>
+      <button class="btn btn-ghost" id="det-close-footer">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/components.js"></script>
+<script>
+'use strict';
+
+let _allOS = [];
+let _equipamentos = [];
+let _userNivel = 0;
+let _userId = 0;
+
+initPage({
+  title: 'Manutenção',
+  breadcrumb: ['Manutenção'],
+  requireNivel: 1,
+  activeMenu: 'manutencao',
+  async onReady(user) {
+    _userNivel = user.nivel_acesso || 0;
+    _userId = user.id;
+    await Promise.all([_carregarOS(), _carregarEquipamentos(), _carregarStats()]);
+    _bindEvents();
+  },
+});
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+async function _carregarStats() {
+  try {
+    const d = await API.get('/manutencao/stats');
+    const s = d.data || d;
+    document.getElementById('stat-abertas').textContent   = s.osAberta ?? '—';
+    document.getElementById('stat-andamento').textContent = s.osEmAndamento ?? '—';
+    document.getElementById('stat-concluidas').textContent = s.osConcluida30d ?? '—';
+  } catch { /* silencioso */ }
+}
+
+async function _carregarOS() {
+  const wrap = document.getElementById('os-table-wrap');
+  wrap.innerHTML = '<div class="page-loader"><span class="spinner"></span></div>';
+  try {
+    const res = await API.get('/manutencao/os');
+    _allOS = Array.isArray(res) ? res : (res.data || []);
+    _renderOS(_allOS);
+  } catch (err) {
+    wrap.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">Erro: ${escapeHtml(err.message)}</span></div>`;
+  }
+}
+
+async function _carregarEquipamentos() {
+  try {
+    const res = await API.get('/manutencao/equipamentos');
+    _equipamentos = Array.isArray(res) ? res : (res.data || []);
+    const sel = document.getElementById('nos-equipamento');
+    _equipamentos.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = e.nome + (e.codigo ? ` (${e.codigo})` : '');
+      sel.appendChild(opt);
+    });
+  } catch { /* silencioso */ }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function _renderOS(lista) {
+  const wrap = document.getElementById('os-table-wrap');
+  if (!lista.length) {
+    wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📋</span><span class="empty-state-title">Nenhuma OS encontrada</span></div>';
+    return;
+  }
+  wrap.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Equipamento</th>
+            <th>Tipo</th>
+            <th>Prioridade</th>
+            <th>Status</th>
+            <th>Abertura</th>
+            <th>Solicitante</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lista.map(os => `
+            <tr>
+              <td><code>${escapeHtml(os.codigo || '—')}</code></td>
+              <td>${escapeHtml(os.equipamento_nome || '—')}</td>
+              <td><span class="os-badge badge-tipo-${os.tipo}">${escapeHtml(os.tipo || '—')}</span></td>
+              <td><span class="os-badge badge-prio-${os.prioridade}">${escapeHtml(os.prioridade || '—')}</span></td>
+              <td><span class="os-badge badge-st-${os.status}">${_labelStatus(os.status)}</span></td>
+              <td style="white-space:nowrap;">${_fmtDate(os.data_abertura)}</td>
+              <td>${escapeHtml(os.solicitante_nome || '—')}</td>
+              <td><button class="btn btn-sm btn-secondary btn-ver-os" data-id="${os.id}">Ver</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function _aplicarFiltros() {
+  const busca  = document.getElementById('os-search').value.toLowerCase().trim();
+  const status = document.getElementById('filter-status').value;
+  const tipo   = document.getElementById('filter-tipo').value;
+
+  const filtrado = _allOS.filter(os => {
+    if (status && os.status !== status) return false;
+    if (tipo   && os.tipo   !== tipo)   return false;
+    if (busca) {
+      const hay = [os.codigo, os.equipamento_nome, os.descricao, os.solicitante_nome]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(busca)) return false;
+    }
+    return true;
+  });
+  _renderOS(filtrado);
+}
+
+// ── Detalhe OS ────────────────────────────────────────────────────────────────
+async function _abrirDetalhe(id) {
+  const modal = document.getElementById('modal-os-detail');
+  modal.style.display = 'flex';
+  document.getElementById('det-titulo').textContent    = 'Carregando...';
+  document.getElementById('det-subtitulo').textContent = '';
+  document.getElementById('det-body').innerHTML = '<div class="page-loader"><span class="spinner"></span></div>';
+  document.getElementById('det-status-actions').innerHTML = '';
+
+  try {
+    const res = await API.get(`/manutencao/os/${id}`);
+    const os  = res.data || res;
+    _renderDetalhe(os);
+  } catch (err) {
+    document.getElementById('det-body').innerHTML =
+      `<p style="color:var(--color-danger);">Erro ao carregar OS: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function _renderDetalhe(os) {
+  document.getElementById('det-titulo').textContent    = os.codigo;
+  document.getElementById('det-subtitulo').textContent = os.equipamento_nome || '';
+
+  const campos = [
+    { l: 'Equipamento',          v: os.equipamento_nome, full: false },
+    { l: 'Tipo',                 v: os.tipo,             full: false },
+    { l: 'Prioridade',           v: os.prioridade,       full: false },
+    { l: 'Status',               v: _labelStatus(os.status), full: false },
+    { l: 'Solicitante',          v: os.solicitante_nome, full: false },
+    { l: 'Técnico',              v: os.tecnico_nome,     full: false },
+    { l: 'Abertura',             v: _fmtDate(os.data_abertura), full: false },
+    { l: 'Previsão',             v: os.data_previsao ? _fmtDate(os.data_previsao) : null, full: false },
+    { l: 'Descrição do Problema',v: os.descricao,        full: true },
+    { l: 'Motivo da Manutenção', v: os.motivo_manutencao, full: true },
+    { l: 'Causa Raiz',           v: os.causa_raiz,       full: true },
+    { l: 'Observação de Conclusão', v: os.observacao_conclusao, full: true },
+  ];
+
+  document.getElementById('det-body').innerHTML = `
+    <div class="os-detail-grid">
+      ${campos.map(c => `
+        <div class="os-detail-field${c.full ? ' full' : ''}">
+          <label>${c.l}</label>
+          <p class="${!c.v ? 'empty' : ''}">${c.v ? escapeHtml(String(c.v)) : '—'}</p>
+        </div>
+      `).join('')}
+    </div>
+    ${_userNivel >= 2 ? _renderStatusForm(os) : ''}
+  `;
+
+  // Status change actions
+  if (_userNivel >= 2) {
+    _bindStatusForm(os);
+  }
+}
+
+function _renderStatusForm(os) {
+  if (['concluida','cancelada'].includes(os.status)) return '';
+  return `
+    <div style="border-top:1px solid var(--border-color); padding-top:var(--space-4); margin-top:var(--space-2);">
+      <div style="font-size:var(--font-size-sm); font-weight:600; color:var(--text-secondary); margin-bottom:var(--space-3);">Atualizar Status</div>
+      <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:flex-end;">
+        <div class="form-group" style="flex:1; min-width:160px; margin:0;">
+          <select id="det-novo-status" class="form-control">
+            ${['aberta','em_andamento','aguardando_peca','concluida','cancelada']
+              .filter(s => s !== os.status)
+              .map(s => `<option value="${s}">${_labelStatus(s)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group" style="flex:2; min-width:200px; margin:0;">
+          <input type="text" id="det-obs-status" class="form-control" placeholder="Observação (opcional)" maxlength="500" />
+        </div>
+        <div class="form-group" style="min-width:180px; margin:0;" id="det-causa-raiz-wrap" style="display:none;">
+          <input type="text" id="det-causa-raiz" class="form-control" placeholder="Causa raiz (ao concluir)" maxlength="1000" />
+        </div>
+        <button class="btn btn-primary btn-sm" id="det-btn-update-status">Salvar</button>
+      </div>
+    </div>
+  `;
+}
+
+function _bindStatusForm(os) {
+  const sel = document.getElementById('det-novo-status');
+  const btn = document.getElementById('det-btn-update-status');
+  if (!sel || !btn) return;
+
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      const novoStatus = sel.value;
+      const obs        = document.getElementById('det-obs-status').value.trim();
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      try {
+        await API.put(`/manutencao/os/${os.id}/status`, {
+          status: novoStatus,
+          observacao_tecnico: obs || undefined,
+        });
+        showToast('Status atualizado!', 'success');
+        document.getElementById('modal-os-detail').style.display = 'none';
+        await Promise.all([_carregarOS(), _carregarStats()]);
+      } catch (err) {
+        showToast(err.message || 'Erro ao atualizar status', 'danger');
+        btn.disabled = false;
+        btn.textContent = 'Salvar';
+      }
+    });
+  }
+}
+
+// ── Nova OS ───────────────────────────────────────────────────────────────────
+async function _submitNovaOS() {
+  const errEl  = document.getElementById('nos-error');
+  const errTxt = document.getElementById('nos-error-text');
+  const btn    = document.getElementById('nos-submit');
+  errEl.style.display = 'none';
+
+  const descricao = document.getElementById('nos-descricao').value.trim();
+  if (!descricao) {
+    errTxt.textContent = 'Descrição é obrigatória.';
+    errEl.style.display = 'flex';
+    return;
+  }
+
+  const payload = {
+    equipamento_id:     document.getElementById('nos-equipamento').value || undefined,
+    tipo:               document.getElementById('nos-tipo').value,
+    prioridade:         document.getElementById('nos-prioridade').value,
+    descricao,
+    motivo_manutencao:  document.getElementById('nos-motivo').value.trim() || undefined,
+    causa_raiz:         document.getElementById('nos-causa-raiz').value.trim() || undefined,
+    data_previsao:      document.getElementById('nos-previsao').value || undefined,
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Abrindo...';
+  try {
+    const res = await API.post('/manutencao/os', payload);
+    showToast(`OS ${res.data?.codigo || ''} aberta com sucesso!`, 'success');
+    document.getElementById('modal-nova-os').style.display = 'none';
+    document.getElementById('form-nova-os').reset();
+    await Promise.all([_carregarOS(), _carregarStats()]);
+  } catch (err) {
+    errTxt.textContent = err.message || 'Erro ao abrir OS.';
+    errEl.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Abrir OS';
+  }
+}
+
+// ── Event bindings ────────────────────────────────────────────────────────────
+function _bindEvents() {
+  document.getElementById('btn-nova-os').addEventListener('click', () => {
+    document.getElementById('nos-error').style.display = 'none';
+    document.getElementById('form-nova-os').reset();
+    document.getElementById('modal-nova-os').style.display = 'flex';
+  });
+
+  // Pré-seleciona equipamento se vier via ?equipamento=<id>
+  const _eqParam = new URLSearchParams(window.location.search).get('equipamento');
+  if (_eqParam) {
+    document.getElementById('nos-equipamento').value = _eqParam;
+    document.getElementById('nos-error').style.display = 'none';
+    document.getElementById('form-nova-os').reset();
+    document.getElementById('modal-nova-os').style.display = 'flex';
+    document.getElementById('nos-equipamento').value = _eqParam;
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  document.getElementById('nos-close').addEventListener('click',  () => { document.getElementById('modal-nova-os').style.display = 'none'; });
+  document.getElementById('nos-cancel').addEventListener('click', () => { document.getElementById('modal-nova-os').style.display = 'none'; });
+  document.getElementById('nos-submit').addEventListener('click', _submitNovaOS);
+  document.getElementById('form-nova-os').addEventListener('submit', e => { e.preventDefault(); _submitNovaOS(); });
+
+  document.getElementById('modal-nova-os').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-nova-os')) document.getElementById('modal-nova-os').style.display = 'none';
+  });
+
+  document.getElementById('det-close').addEventListener('click',        () => { document.getElementById('modal-os-detail').style.display = 'none'; });
+  document.getElementById('det-close-footer').addEventListener('click', () => { document.getElementById('modal-os-detail').style.display = 'none'; });
+  document.getElementById('modal-os-detail').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-os-detail')) document.getElementById('modal-os-detail').style.display = 'none';
+  });
+
+  document.getElementById('btn-refresh').addEventListener('click', () => Promise.all([_carregarOS(), _carregarStats()]));
+  document.getElementById('os-search').addEventListener('input', _aplicarFiltros);
+  document.getElementById('filter-status').addEventListener('change', _aplicarFiltros);
+  document.getElementById('filter-tipo').addEventListener('change', _aplicarFiltros);
+
+  // OS table row click
+  document.getElementById('os-table-wrap').addEventListener('click', e => {
+    const btn = e.target.closest('.btn-ver-os');
+    if (btn) _abrirDetalhe(Number(btn.dataset.id));
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('modal-nova-os').style.display = 'none';
+      document.getElementById('modal-os-detail').style.display = 'none';
+    }
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function _labelStatus(s) {
+  return { aberta:'Aberta', em_andamento:'Em Andamento', aguardando_peca:'Ag. Peça', concluida:'Concluída', cancelada:'Cancelada' }[s] || s;
+}
+function _fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('pt-BR'); } catch { return d; }
+}
+</script>
+</body>
+</html>

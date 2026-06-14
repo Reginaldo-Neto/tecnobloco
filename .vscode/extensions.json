@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "PKief.material-icon-theme",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "bradlc.vscode-tailwindcss",
+    "cweijan.vscode-mysql-client2",
+    "humao.rest-client"
+  ]
+}

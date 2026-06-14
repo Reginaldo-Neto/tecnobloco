@@ -1,0 +1,678 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    /* ── Stat grid ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    /* ── Quick actions ── */
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var(--space-3);
+    }
+    .quick-action-btn {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: var(--space-2); padding: var(--space-4);
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+      cursor: pointer; transition: all var(--transition);
+      text-decoration: none; text-align: center;
+    }
+    .quick-action-btn:hover {
+      background: rgba(124,58,237,.12);
+      border-color: rgba(124,58,237,.3);
+      color: var(--text-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(124,58,237,.15);
+    }
+    .quick-action-icon { font-size: 26px; line-height: 1; }
+
+    /* ── Activity ── */
+    .activity-user { display: flex; align-items: center; gap: var(--space-2); }
+    .activity-avatar {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--color-primary), #9f67ff);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: var(--font-weight-bold); color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1200px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) {
+      .stat-grid { grid-template-columns: 1fr; }
+      .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
+      .welcome-banner-enhanced { flex-direction: column; align-items: flex-start; }
+      .welcome-clock { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+    <div id="topbar-container"></div>
+
+    <main class="main-content" id="main-content">
+
+      <!-- ── Welcome Banner ── -->
+      <div class="welcome-banner-enhanced" id="welcome-banner">
+        <div class="welcome-user-info">
+          <div class="welcome-user-avatar" id="welcome-avatar">?</div>
+          <div>
+            <h2 id="welcome-heading" style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--text-primary);margin-bottom:4px;">Bom dia!</h2>
+            <p id="welcome-sub" style="font-size:var(--font-size-sm);color:var(--text-muted);">Visão geral do sistema em tempo real.</p>
+          </div>
+        </div>
+        <div class="welcome-clock">
+          <div class="welcome-clock-time" id="time-str">—</div>
+          <div class="welcome-clock-date" id="date-str">—</div>
+        </div>
+      </div>
+
+      <!-- ── Stat cards ── -->
+      <div class="stat-grid" id="stat-grid">
+
+        <div class="stat-card accent-purple">
+          <div class="stat-info">
+            <div class="stat-label">Total Colaboradores</div>
+            <div class="stat-value" id="stat-colaboradores">—</div>
+            <div class="stat-change positive" id="stat-colaboradores-change"></div>
+          </div>
+          <div class="stat-icon primary">👤</div>
+        </div>
+
+        <div class="stat-card accent-yellow">
+          <div class="stat-info">
+            <div class="stat-label">Ordens em Aberto</div>
+            <div class="stat-value" id="stat-ordens">—</div>
+            <div class="stat-change" id="stat-ordens-change"></div>
+          </div>
+          <div class="stat-icon warning">📋</div>
+        </div>
+
+        <div class="stat-card accent-green">
+          <div class="stat-info">
+            <div class="stat-label">Produção Hoje</div>
+            <div class="stat-value" id="stat-producao">—</div>
+            <div class="stat-change" id="stat-producao-change"></div>
+          </div>
+          <div class="stat-icon success">🏭</div>
+        </div>
+
+        <div class="stat-card accent-red">
+          <div class="stat-info">
+            <div class="stat-label">Alertas Ativos</div>
+            <div class="stat-value" id="stat-alertas">—</div>
+            <div class="stat-change danger" id="stat-alertas-change"></div>
+          </div>
+          <div class="stat-icon danger">⚠</div>
+        </div>
+
+      </div><!-- /.stat-grid -->
+
+      <!-- ── Charts row ── -->
+      <div class="charts-row">
+
+        <!-- Production trend chart -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Produção — Últimos 7 dias</h3>
+            <span class="badge badge-success badge-dot">Atualizado</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart-producao"></canvas>
+          </div>
+        </div>
+
+        <!-- Sector distribution -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Distribuição por Setor</h3>
+          </div>
+          <div class="chart-wrap" style="display:flex;flex-direction:column;align-items:center;">
+            <canvas id="chart-setores" style="max-height:200px;max-width:260px;"></canvas>
+            <div id="chart-setores-legend" class="d-flex flex-wrap gap-2 mt-3 justify-center" style="justify-content:center;"></div>
+          </div>
+        </div>
+
+      </div><!-- /.charts-row -->
+
+      <!-- ── Main content row ── -->
+      <div class="row" style="align-items:flex-start;margin-bottom:var(--space-6);gap:var(--space-4);flex-wrap:wrap;">
+
+        <!-- Recent activity -->
+        <div style="flex:2;min-width:280px;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Atividade Recente</h3>
+              <button class="btn btn-secondary btn-sm" id="refresh-activity-btn">↻ Atualizar</button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-wrapper" style="border:none;border-radius:0;">
+                <table class="table table-hover" id="activity-table">
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>Ação</th>
+                      <th>Módulo</th>
+                      <th>Horário</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="activity-tbody">
+                    <tr><td colspan="5"><div class="page-loader" style="min-height:120px;"><span class="spinner"></span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts panel -->
+        <div style="flex:1;min-width:220px;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Alertas do Sistema</h3>
+              <span class="badge badge-danger" id="alert-badge">0</span>
+            </div>
+            <div class="card-body" id="alerts-panel" style="display:flex;flex-direction:column;gap:var(--space-3);">
+              <div class="page-loader" style="min-height:80px;"><span class="spinner"></span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Quick actions ── -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Acesso Rápido — Módulos</h3>
+        </div>
+        <div class="card-body">
+          <div class="quick-actions-grid" id="quick-actions-grid"></div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /.app-layout -->
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/funcoes/_core.js"></script>
+  <script src="../assets/js/funcoes/global_forms.js"></script>
+  <script src="../assets/js/funcoes/global.js"></script>
+  <script>
+    'use strict';
+
+    // ── Init page ────────────────────────────────────────────────
+    initPage({
+      title:        'Dashboard',
+      breadcrumb:   ['Início', 'Dashboard'],
+      requireNivel: 0,
+      activeMenu:   'dashboard',
+      onReady:      onReady,
+    });
+
+    function onReady(user) {
+      renderQuickActions('quick-actions-grid');
+      _renderWelcome(user);
+      _startClock();
+      _loadStats();
+      _loadActivity();
+      _loadAlerts();
+      _initCharts();
+      _injectFnSidebar();
+    }
+
+    // ── Welcome Banner ───────────────────────────────────────────
+    function _renderWelcome(user) {
+      const nome         = user ? (user.nome || user.email || 'Usuário') : 'Usuário';
+      const primeiroNome = nome.split(' ')[0];
+      const hora         = new Date().getHours();
+      const saudacao     = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+
+      document.getElementById('welcome-heading').textContent = `${saudacao}, ${primeiroNome}!`;
+      document.getElementById('welcome-sub').textContent =
+        `${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+
+      // Avatar initials
+      const initials = nome.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+      document.getElementById('welcome-avatar').textContent = initials;
+    }
+
+    // ── Clock ────────────────────────────────────────────────────
+    function _startClock() {
+      function update() {
+        const now = new Date();
+        document.getElementById('time-str').textContent =
+          now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('date-str').textContent =
+          now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    // ── Stats ────────────────────────────────────────────────────
+    async function _loadStats() {
+      ['stat-colaboradores', 'stat-ordens', 'stat-producao', 'stat-alertas'].forEach(id => {
+        document.getElementById(id).innerHTML = '<span class="spinner spinner-sm"></span>';
+      });
+      try {
+        const data = await API.get('/dashboard/stats');
+        _setStat('stat-colaboradores', data.colaboradores, data.colaboradoresChange);
+        _setStat('stat-ordens',        data.ordensAberto,  data.ordensChange,    true);
+        _setStat('stat-producao',      data.producaoHoje,  data.producaoChange);
+        _setStat('stat-alertas',       data.alertas,       data.alertasChange,   true);
+        document.getElementById('alert-badge').textContent = data.alertas || 0;
+      } catch {
+        ['stat-colaboradores', 'stat-ordens', 'stat-producao', 'stat-alertas'].forEach(id => {
+          document.getElementById(id).textContent = '—';
+        });
+      }
+    }
+
+    function _setStat(id, value, change, invertColor) {
+      const el = document.getElementById(id);
+      if (el) {
+        const displayVal = value !== undefined && value !== null ? value : '—';
+        // Animate number if numeric
+        if (typeof value === 'number' && isFinite(value)) {
+          _animateCount(el, 0, value, 700);
+        } else {
+          el.textContent = displayVal;
+          el.classList.add('anim-count');
+          setTimeout(() => el.classList.remove('anim-count'), 600);
+        }
+      }
+      const changeEl = document.getElementById(id + '-change');
+      if (changeEl && change !== undefined && change !== null) {
+        const positive = invertColor ? change < 0 : change >= 0;
+        changeEl.className = `stat-change ${positive ? 'positive' : 'negative'}`;
+        changeEl.textContent = `${change >= 0 ? '+' : ''}${change} em relação a ontem`;
+      }
+    }
+
+    function _animateCount(el, from, to, duration) {
+      const start = performance.now();
+      el.classList.add('anim-count');
+      function step(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        el.textContent = Math.round(from + (to - from) * eased);
+        if (progress < 1) requestAnimationFrame(step);
+        else {
+          el.textContent = to;
+          el.classList.remove('anim-count');
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    // ── Charts ───────────────────────────────────────────────────
+    function _initCharts() {
+      // Chart.js global defaults — dark theme
+      Chart.defaults.color          = '#94a3b8';
+      Chart.defaults.borderColor    = 'rgba(255,255,255,0.06)';
+      Chart.defaults.font.family    = "'Inter','Segoe UI',system-ui,sans-serif";
+      Chart.defaults.font.size      = 12;
+
+      _initProducaoChart();
+      _initSetoresChart();
+    }
+
+    function _initProducaoChart() {
+      const ctx = document.getElementById('chart-producao');
+      if (!ctx) return;
+
+      // Placeholder data — replace with API call when endpoint exists
+      const labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+      const data   = [420, 485, 460, 510, 495, 390, 430];
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Produção (kg)',
+            data,
+            borderColor: '#7c3aed',
+            backgroundColor: (ctx) => {
+              const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 220);
+              gradient.addColorStop(0,   'rgba(124,58,237,.35)');
+              gradient.addColorStop(0.7, 'rgba(124,58,237,.05)');
+              gradient.addColorStop(1,   'rgba(124,58,237,0)');
+              return gradient;
+            },
+            borderWidth: 2.5,
+            pointBackgroundColor: '#7c3aed',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.4,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(22,27,39,.95)',
+              borderColor: 'rgba(255,255,255,.1)',
+              borderWidth: 1,
+              padding: 10,
+              titleColor: '#f1f5f9',
+              bodyColor: '#94a3b8',
+              callbacks: {
+                label: ctx => ` ${ctx.parsed.y.toLocaleString('pt-BR')} kg`,
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b' },
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,.04)' },
+              ticks: { color: '#64748b', callback: v => v >= 1000 ? v/1000+'k' : v },
+              beginAtZero: false,
+            }
+          }
+        }
+      });
+    }
+
+    function _initSetoresChart() {
+      const ctx = document.getElementById('chart-setores');
+      if (!ctx) return;
+
+      const setores = ['Produção', 'RH', 'Estoque', 'Manutenção', 'Qualidade', 'Outros'];
+      const values  = [32, 18, 14, 12, 10, 14];
+      const colors  = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#64748b'];
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: setores,
+          datasets: [{
+            data: values,
+            backgroundColor: colors.map(c => c + 'cc'),
+            borderColor: colors,
+            borderWidth: 2,
+            hoverBorderWidth: 3,
+            hoverOffset: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(22,27,39,.95)',
+              borderColor: 'rgba(255,255,255,.1)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: ctx => ` ${ctx.label}: ${ctx.parsed}%`
+              }
+            }
+          }
+        }
+      });
+
+      // Render custom legend
+      const legend = document.getElementById('chart-setores-legend');
+      if (legend) {
+        legend.innerHTML = setores.map((s, i) => `
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0;display:inline-block;"></span>
+            <span style="font-size:11px;color:var(--text-muted);">${s} <strong style="color:var(--text-secondary);">${values[i]}%</strong></span>
+          </div>`).join('');
+      }
+    }
+
+    // ── Activity table ───────────────────────────────────────────
+    async function _loadActivity() {
+      const tbody = document.getElementById('activity-tbody');
+      tbody.innerHTML = `<tr><td colspan="5"><div class="page-loader" style="min-height:80px;"><span class="spinner"></span></div></td></tr>`;
+      try {
+        const data = await API.get('/dashboard/activity');
+        const rows = Array.isArray(data) ? data : (data.items || []);
+        if (!rows.length) {
+          tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:32px 16px;"><span class="empty-state-icon">📭</span><span class="empty-state-title">Nenhuma atividade recente</span></div></td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map(r => {
+          const usuario   = _esc(r.usuario) || '—';
+          const acao      = _esc(r.acao)    || '—';
+          const modulo    = _esc(r.modulo)  || '—';
+          const initials  = (r.usuario || '?').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+          const statusClass = { success:'badge-success',ok:'badge-success',error:'badge-danger',fail:'badge-danger',pending:'badge-warning',info:'badge-info' }[r.status] || 'badge-muted';
+          return `
+            <tr>
+              <td><div class="activity-user"><div class="activity-avatar">${_esc(initials)}</div><span>${usuario}</span></div></td>
+              <td>${acao}</td>
+              <td><span class="badge badge-primary">${modulo}</span></td>
+              <td class="text-muted">${_fmtTime(r.horario)}</td>
+              <td><span class="badge ${statusClass}">${_esc(r.status) || '—'}</span></td>
+            </tr>`;
+        }).join('');
+      } catch {
+        tbody.innerHTML = _mockActivityRows();
+      }
+    }
+
+    function _mockActivityRows() {
+      const mock = [
+        { usuario: 'Admin',   acao: 'Login',             modulo: 'Auth',     horario: new Date(),                  status: 'success' },
+        { usuario: 'Sistema', acao: 'Backup agendado',   modulo: 'TI',       horario: new Date(Date.now() - 3e5),  status: 'ok' },
+        { usuario: 'Sistema', acao: 'Relatório gerado',  modulo: 'Produção', horario: new Date(Date.now() - 6e5),  status: 'ok' },
+      ];
+      return mock.map(r => {
+        const initials = (r.usuario || '?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+        return `
+          <tr>
+            <td><div class="activity-user"><div class="activity-avatar">${initials}</div><span>${r.usuario}</span></div></td>
+            <td>${r.acao}</td>
+            <td><span class="badge badge-primary">${r.modulo}</span></td>
+            <td class="text-muted">${_fmtTime(r.horario)}</td>
+            <td><span class="badge badge-success">${r.status}</span></td>
+          </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('refresh-activity-btn').addEventListener('click', _loadActivity);
+
+    // ── Alerts panel ─────────────────────────────────────────────
+    async function _loadAlerts() {
+      const panel = document.getElementById('alerts-panel');
+      panel.innerHTML = `<div class="page-loader" style="min-height:60px;"><span class="spinner"></span></div>`;
+      try {
+        const data   = await API.get('/dashboard/alerts');
+        const alerts = Array.isArray(data) ? data : (data.items || []);
+        if (!alerts.length) {
+          panel.innerHTML = `
+            <div class="empty-state" style="padding:16px;">
+              <span class="empty-state-icon" style="font-size:28px;">✅</span>
+              <span class="empty-state-title" style="font-size:13px;">Sem alertas ativos</span>
+            </div>`;
+          document.getElementById('alert-badge').textContent = '0';
+          return;
+        }
+        document.getElementById('alert-badge').textContent = alerts.length;
+        panel.innerHTML = alerts.map(a => {
+          const typeClass = { danger:'alert-danger', warning:'alert-warning', info:'alert-info', success:'alert-success' }[a.tipo] || 'alert-warning';
+          const icon      = { danger:'⛔', warning:'⚠', info:'ℹ', success:'✅' }[a.tipo] || '⚠';
+          return `
+            <div class="alert ${typeClass}" style="padding:10px 12px;">
+              <span class="alert-icon">${icon}</span>
+              <div>
+                <div style="font-weight:600;font-size:13px;">${_esc(a.titulo) || 'Alerta'}</div>
+                <div style="font-size:12px;margin-top:2px;opacity:.85;">${_esc(a.mensagem) || ''}</div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch {
+        panel.innerHTML = `
+          <div class="alert alert-info" style="padding:10px 12px;">
+            <span class="alert-icon">ℹ</span>
+            <div>
+              <div style="font-weight:600;font-size:13px;">Sistema iniciado</div>
+              <div style="font-size:12px;margin-top:2px;opacity:.85;">Aguardando dados do servidor.</div>
+            </div>
+          </div>`;
+        document.getElementById('alert-badge').textContent = '1';
+      }
+    }
+
+    // ── Funções Globais no Sidebar ───────────────────────────────
+    function _injectFnSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      if (!sidebar) return;
+
+      const groups = [
+        {
+          id: 'fngrp-sol', icon: '📋', label: 'Solicitações',
+          items: [
+            { fn: 'f01SolicitarReuniao',        icon: '📅', label: 'Solicitar Reunião' },
+            { fn: 'f02VerSolicitacoesReuniao',  icon: '📋', label: 'Minhas Reuniões' },
+            { fn: 'f07AbrirSolicitacaoCompra',  icon: '🛒', label: 'Solicitar Compra' },
+            { fn: 'f08VerSolicitacoesCompra',   icon: '📦', label: 'Minhas Compras' },
+            { fn: 'f26SolicitarVeiculo',        icon: '🚗', label: 'Solicitar Veículo' },
+            { fn: 'f21SolicitarAdiantamento',   icon: '💵', label: 'Adiantamento' },
+          ],
+        },
+        {
+          id: 'fngrp-man', icon: '🔧', label: 'Manutenção & Serviços',
+          items: [
+            { fn: 'f03AbrirOsManutencao',            icon: '🔧', label: 'Abrir OS' },
+            { fn: 'f04VerMinhasOsAbertas',            icon: '📝', label: 'Minhas OS' },
+            { fn: 'f28VerEscalaManutencao',           icon: '📆', label: 'Escala Manutenção' },
+            { fn: 'f05SolicitarLimpeza',              icon: '🧹', label: 'Solicitar Limpeza' },
+            { fn: 'f06VerSolicitacoesLimpeza',        icon: '🗂', label: 'Minhas Limpezas' },
+            { fn: 'f24SolicitarHigienizacaoUniforme', icon: '👕', label: 'Uniformes' },
+            { fn: 'f25SolicitarServicosGerais',       icon: '🏗', label: 'Serviços Gerais' },
+          ],
+        },
+        {
+          id: 'fngrp-rh', icon: '👤', label: 'RH & Pessoal',
+          items: [
+            { fn: 'f16VerHolerite',          icon: '💰', label: 'Holerite' },
+            { fn: 'f17MeuBancoHoras',        icon: '⏱',  label: 'Banco de Horas' },
+            { fn: 'f15GerenciarTreinamentos',icon: '🎓', label: 'Treinamentos' },
+            { fn: 'f20MeusEpis',             icon: '🦺', label: 'Meus EPIs' },
+            { fn: 'f09EnviarAtestado',       icon: '📄', label: 'Enviar Atestado' },
+            { fn: 'f10VerDocumentosLegais',  icon: '🗄', label: 'Meus Documentos' },
+            { fn: 'f11InformarOcorrencia',   icon: '⚠',  label: 'Informar Ocorrência' },
+            { fn: 'f12VerMinhasOcorrencias', icon: '📋', label: 'Minhas Ocorrências' },
+          ],
+        },
+        {
+          id: 'fngrp-est', icon: '📦', label: 'Estoque & Refeitório',
+          items: [
+            { fn: 'f13VerItensEstocados',  icon: '📦', label: 'Ver Estoque' },
+            { fn: 'f27VerSolicitarEstoque',icon: '📤', label: 'Solicitar do Estoque' },
+            { fn: 'f14ConsultarCardapio',  icon: '🍽', label: 'Cardápio' },
+          ],
+        },
+        {
+          id: 'fngrp-ti', icon: '💻', label: 'TI & Comunicação',
+          items: [
+            { fn: 'f23AbrirTicketTI',       icon: '🖥', label: 'Ticket de TI' },
+            { fn: 'f22DenunciarBug',        icon: '🐛', label: 'Reportar Bug' },
+            { fn: 'f18ListaRamaisContatos', icon: '📞', label: 'Ramais' },
+            { fn: 'f19CanalEtica',          icon: '🔒', label: 'Canal de Ética' },
+          ],
+        },
+      ];
+
+      const section = document.createElement('div');
+      section.className = 'sidebar-section';
+      section.innerHTML =
+        '<div class="sidebar-section-label">Funções Globais</div>' +
+        '<nav class="sidebar-menu">' +
+        groups.map(g =>
+          '<div class="sidebar-group">' +
+            '<button class="sidebar-group-toggle" data-group="' + g.id + '" aria-expanded="false">' +
+              '<span class="sidebar-item-icon">' + g.icon + '</span>' +
+              '<span class="sidebar-item-text">' + g.label + '</span>' +
+              '<span class="sidebar-group-arrow">›</span>' +
+            '</button>' +
+            '<div class="sidebar-submenu" id="' + g.id + '">' +
+              g.items.map(item =>
+                '<button class="sidebar-fn-item" data-fn="' + item.fn + '">' +
+                  '<span class="sidebar-fn-icon">' + item.icon + '</span>' +
+                  '<span>' + item.label + '</span>' +
+                '</button>'
+              ).join('') +
+            '</div>' +
+          '</div>'
+        ).join('') +
+        '</nav>';
+
+      sidebar.appendChild(section);
+
+      section.querySelectorAll('.sidebar-group-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id      = btn.getAttribute('data-group');
+          var submenu = document.getElementById(id);
+          var isOpen  = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!isOpen));
+          submenu.style.display = isOpen ? 'none' : 'flex';
+          btn.classList.toggle('open', !isOpen);
+        });
+      });
+
+      section.querySelectorAll('.sidebar-fn-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var fn = btn.getAttribute('data-fn');
+          if (typeof FuncoesGlobal !== 'undefined' && typeof FuncoesGlobal[fn] === 'function') {
+            FuncoesGlobal[fn]();
+          }
+        });
+      });
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────
+    function _esc(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+    function _fmtTime(val) {
+      if (!val) return '—';
+      try {
+        return new Date(val).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      } catch { return '—'; }
+    }
+  </script>
+</body>
+</html>

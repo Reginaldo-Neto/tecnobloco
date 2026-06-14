@@ -1,0 +1,25 @@
+{
+  "_comment": "Feature flags da Tecnobloco ERP. Defina false para ocultar um módulo do menu e desabilitar suas rotas de API.",
+  "_instrucao": "Após alterar este arquivo, reinicie o servidor (npm run dev).",
+
+  "modules": {
+    "dashboard":        { "enabled": true,  "label": "Dashboard" },
+    "manutencao":       { "enabled": true,  "label": "Manutenção" },
+    "producao":         { "enabled": false, "label": "Produção" },
+    "qualidade":        { "enabled": false, "label": "Qualidade" },
+    "estoque":          { "enabled": false, "label": "Estoque" },
+    "rh":               { "enabled": false, "label": "RH" },
+    "compras":          { "enabled": false, "label": "Compras" },
+    "financeiro":       { "enabled": false, "label": "Financeiro" },
+    "frota":            { "enabled": false, "label": "Frota" },
+    "ti":               { "enabled": false, "label": "TI" },
+    "seguranca":        { "enabled": false, "label": "Segurança" },
+    "vendas":           { "enabled": false, "label": "Vendas" },
+    "sac":              { "enabled": false, "label": "SAC" },
+    "juridico":         { "enabled": false, "label": "Jurídico" },
+    "limpeza":          { "enabled": false, "label": "Limpeza" },
+    "lavanderia":       { "enabled": false, "label": "Lavanderia" },
+    "servicos-gerais":  { "enabled": false, "label": "Serviços Gerais" },
+    "admin":            { "enabled": true,  "label": "Administração" }
+  }
+}

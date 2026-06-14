@@ -1,0 +1,2 @@
+-- frota_demo.sql — arquivo mantido vazio intencionalmente.
+-- Dados de frota (veículos, rotas, viagens) devem ser cadastrados pelo app.

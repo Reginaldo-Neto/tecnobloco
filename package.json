@@ -1,0 +1,15 @@
+{
+  "name": "tecnobloco-erp",
+  "version": "2.0.0",
+  "description": "Tecnobloco ERP — Gestão Industrial de Ativos e Manutenção",
+  "private": true,
+  "scripts": {
+    "dev":     "node scripts/dev.js",
+    "start":   "cd backend && npm start",
+    "setup":   "cd backend && npm install && node scripts/setup-db.js",
+    "install": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

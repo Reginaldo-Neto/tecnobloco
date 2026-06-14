@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TI — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .ti-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) { .ti-stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .ti-stat-grid { grid-template-columns: 1fr; } }
+
+    .ti-fn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: var(--space-3);
+    }
+    .ti-fn-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-3);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+      text-align: center;
+    }
+    .ti-fn-btn:hover {
+      background: rgba(59,130,246,0.1);
+      border-color: rgba(59,130,246,0.3);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+    .ti-fn-icon { font-size: 22px; }
+
+    .ti-alert-bar {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-5);
+    }
+    .ti-alert-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+    }
+    .ti-alert-chip.danger  { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .ti-alert-chip.warning { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+    .ti-alert-chip.info    { background: rgba(59,130,246,0.12);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .ti-alert-chip.success { background: rgba(34,197,94,0.12);   color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+
+    .stat-card{display:block;position:relative;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-4);transition:transform .2s,box-shadow .2s;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sc-a,#7c3aed),var(--sc-b,#a78bfa));}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+    .stat-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);}
+    .stat-card-title{font-size:var(--font-size-sm);color:var(--text-muted);font-weight:600;}
+    .stat-card-icon{font-size:1.5rem;opacity:.8;}
+    .stat-card-value{font-size:2.1rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;line-height:1;}
+    .stat-card-sub{font-size:var(--font-size-xs);color:var(--text-muted);}
+    .stat-card.success{--sc-a:#22c55e;--sc-b:#4ade80;}.stat-card.success .stat-card-value{color:#4ade80;}
+    .stat-card.warning{--sc-a:#f97316;--sc-b:#fb923c;}.stat-card.warning .stat-card-value{color:#fb923c;}
+    .stat-card.danger{--sc-a:#ef4444;--sc-b:#f87171;}.stat-card.danger .stat-card-value{color:#f87171;}
+    .stat-card.info{--sc-a:#3b82f6;--sc-b:#60a5fa;}.stat-card.info .stat-card-value{color:#60a5fa;}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div id="topbar-container"></div>
+  <main class="main-content" id="main-content">
+
+      <!-- Alerts -->
+      <div id="ti-alerts" class="ti-alert-bar"></div>
+
+      <!-- Stats -->
+      <div class="ti-stat-grid" id="ti-stats">
+        <div class="stat-card warning"><div class="stat-card-header"><span class="stat-card-title">Chamados Abertos</span><span class="stat-card-icon">🎫</span></div><div class="stat-card-value" id="stat-chamados-abertos">—</div><div class="stat-card-sub">aguardando atendimento</div></div>
+        <div class="stat-card danger"><div class="stat-card-header"><span class="stat-card-title">Chamados Críticos/Altos</span><span class="stat-card-icon">🚨</span></div><div class="stat-card-value" id="stat-chamados-criticos">—</div><div class="stat-card-sub">alta prioridade</div></div>
+        <div class="stat-card"><div class="stat-card-header"><span class="stat-card-title">Ativos em Uso</span><span class="stat-card-icon">💻</span></div><div class="stat-card-value" id="stat-ativos-em-uso">—</div><div class="stat-card-sub">equipamentos alocados</div></div>
+        <div class="stat-card"><div class="stat-card-header"><span class="stat-card-title">Bugs em Aberto</span><span class="stat-card-icon">🐛</span></div><div class="stat-card-value" id="stat-bugs-abertos">—</div><div class="stat-card-sub">aguardando triagem/correção</div></div>
+      </div>
+
+      <!-- Function grid -->
+      <div class="content-card" style="margin-bottom:var(--space-5);">
+        <div class="card-header">
+          <h3 class="card-title">Funções do Setor</h3>
+        </div>
+        <div class="ti-fn-grid" id="ti-fn-grid">
+          <div class="page-loader"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+      <!-- My tickets -->
+      <div class="content-card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 class="card-title">Meus Chamados</h3>
+          <button class="btn btn-sm btn-secondary" id="ti-refresh-ch">↻ Atualizar</button>
+        </div>
+        <div id="ti-ch-table-wrap">
+          <div class="page-loader"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+  </main>
+</div>
+
+<script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/components.js"></script>
+<script src="../../assets/js/funcoes/_core.js"></script>
+<script src="../../assets/js/funcoes/global_forms.js"></script>
+<script src="../../assets/js/funcoes/ti_forms.js"></script>
+<script src="../../assets/js/funcoes/ti.js"></script>
+<script>
+'use strict';
+
+const TI_FUNCTIONS = [
+  { fn: 'f01GestaoChamados',            icon: '🎫', label: 'Gestão de Chamados',        nivel: 2 },
+  { fn: 'f02ResetSenhas',               icon: '🔑', label: 'Reset de Senhas',           nivel: 2 },
+  { fn: 'f03BaseConhecimento',          icon: '📚', label: 'Base de Conhecimento',      nivel: 2 },
+  { fn: 'f04GestaoEmails',              icon: '📧', label: 'E-mails Corporativos',      nivel: 3 },
+  { fn: 'f05GestaoAtivos',              icon: '💻', label: 'Gestão de Ativos',          nivel: 3 },
+  { fn: 'f06Infraestrutura',            icon: '🖧',  label: 'Infraestrutura / Redes',    nivel: 3 },
+  { fn: 'f07GerenciarBugs',             icon: '🐛', label: 'Gerenciar Bugs',            nivel: 3 },
+  { fn: 'f08VerEscala',                 icon: '📅', label: 'Ver Escala TI',             nivel: 0 },
+  { fn: 'f09GerenciarExclusaoDocumentos',icon: '🗑️', label: 'Solicit. de Exclusão',     nivel: 5 },
+  { fn: 'f10GerenciarEscalas',          icon: '📆', label: 'Gerenciar Escalas',         nivel: 4 },
+];
+
+function _ti_statusBadgePage(s) {
+  const m = { aberto: 'warning', em_andamento: 'info', aguardando: 'muted', resolvido: 'success', fechado: 'muted' };
+  return `<span class="badge badge-${m[s]||'muted'}">${escapeHtml(s||'—')}</span>`;
+}
+function _ti_prioBadgePage(p) {
+  const m = { baixa: 'success', media: 'info', alta: 'warning', critica: 'danger' };
+  return `<span class="badge badge-${m[p]||'muted'}">${escapeHtml(p||'—')}</span>`;
+}
+function _fmtD(v) {
+  if (!v) return '—';
+  try { return new Date(v).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); } catch { return '—'; }
+}
+
+async function loadStats() {
+  try {
+    const d = await API.get('/ti/stats');
+    const s = d.data || d;
+    document.getElementById('stat-chamados-abertos').textContent  = s.chamadosAbertos  ?? '—';
+    document.getElementById('stat-chamados-criticos').textContent = s.chamadosCriticos ?? '—';
+    document.getElementById('stat-ativos-em-uso').textContent     = s.ativosEmUso      ?? '—';
+    document.getElementById('stat-bugs-abertos').textContent      = s.bugsAbertos      ?? '—';
+
+    const bar = document.getElementById('ti-alerts');
+    const chips = [];
+    if (s.chamadosCriticos > 0)      chips.push({ type: 'danger',  text: `${s.chamadosCriticos} chamado(s) crítico(s)/alto(s) em aberto` });
+    if (s.chamadosAbertos > 0)       chips.push({ type: 'warning', text: `${s.chamadosAbertos} chamado(s) aguardando atendimento` });
+    if (s.solicitacoesPendentes > 0) chips.push({ type: 'warning', text: `${s.solicitacoesPendentes} solicitação(ões) de exclusão pendente(s)` });
+    if (s.bugsAbertos > 0)           chips.push({ type: 'info',    text: `${s.bugsAbertos} bug(s) em triagem` });
+    if (!chips.length)               chips.push({ type: 'success', text: 'Nenhum alerta ativo no momento' });
+    bar.innerHTML = chips.map(c =>
+      `<span class="ti-alert-chip ${c.type}">${c.type==='danger'?'🚨':c.type==='warning'?'⚠️':c.type==='info'?'ℹ️':'✅'} ${escapeHtml(c.text)}</span>`
+    ).join('');
+  } catch(err) {
+    console.warn('Stats error:', err);
+  }
+}
+
+function renderFunctions(user) {
+  const grid = document.getElementById('ti-fn-grid');
+  const visible = TI_FUNCTIONS.filter(f => user.nivel_acesso >= f.nivel);
+  if (!visible.length) {
+    grid.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🔒</span><span class="empty-state-title">Nenhuma função disponível para seu nível de acesso</span></div>';
+    return;
+  }
+  grid.innerHTML = visible.map(f =>
+    `<button class="ti-fn-btn" data-fn="${escapeHtml(f.fn)}" title="${escapeHtml(f.label)}">
+       <span class="ti-fn-icon">${f.icon}</span>
+       <span>${escapeHtml(f.label)}</span>
+     </button>`
+  ).join('');
+  grid.addEventListener('click', function(e) {
+    const btn = e.target.closest('.ti-fn-btn');
+    if (!btn) return;
+    const fn = btn.getAttribute('data-fn');
+    if (window.FuncoesTI && typeof window.FuncoesTI[fn] === 'function') {
+      window.FuncoesTI[fn]();
+    }
+  });
+}
+
+async function loadMeusChamados() {
+  const wrap = document.getElementById('ti-ch-table-wrap');
+  try {
+    const d = await API.get('/ti/chamados/meus');
+    const rows = Array.isArray(d) ? d : (d.data || []);
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📭</span><span class="empty-state-title">Nenhum chamado associado a você</span></div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Título</th>
+              <th>Categoria</th>
+              <th>Prioridade</th>
+              <th>Status</th>
+              <th>Abertura</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr${r.prioridade==='critica' ? ' style="background:rgba(239,68,68,0.05);"' : r.prioridade==='alta' ? ' style="background:rgba(251,146,60,0.05);"' : ''}>
+                <td><code>${escapeHtml(r.codigo||'—')}</code></td>
+                <td>${escapeHtml(r.titulo||'—')}</td>
+                <td><span class="badge badge-muted">${escapeHtml(r.categoria||'—')}</span></td>
+                <td>${_ti_prioBadgePage(r.prioridade)}</td>
+                <td>${_ti_statusBadgePage(r.status)}</td>
+                <td>${_fmtD(r.data_abertura)}</td>
+                <td><button class="btn btn-sm btn-secondary" onclick="window.FuncoesTI&&window.FuncoesTI.f01GestaoChamados()">Ver</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(err) {
+    wrap.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">Erro ao carregar chamados: ${escapeHtml(err.message||'')}</span></div>`;
+  }
+}
+
+async function onReady(user) {
+  await Promise.all([loadStats(), loadMeusChamados()]);
+  renderFunctions(user);
+  document.getElementById('ti-refresh-ch').addEventListener('click', loadMeusChamados);
+}
+
+initPage({
+  title: 'TI',
+  breadcrumb: ['TI'],
+  requireNivel: 0,
+  activeMenu: 'ti',
+  onReady: onReady,
+});
+</script>
+</body>
+</html>

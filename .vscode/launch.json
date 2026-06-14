@@ -1,0 +1,50 @@
+﻿{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Tecnobloco: Dev (iniciar + browser)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/dev.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "presentation": {
+        "group": "tecnobloco",
+        "order": 1
+      }
+    },
+    {
+      "name": "Tecnobloco: Backend (debug com breakpoints)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/backend/server.js",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal",
+      "restart": false,
+      "skipFiles": ["<node_internals>/**"],
+      "presentation": {
+        "group": "tecnobloco",
+        "order": 2
+      }
+    },
+    {
+      "name": "Tecnobloco: Backend (nodemon + debug)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "nodemon",
+      "runtimeArgs": ["--inspect"],
+      "program": "${workspaceFolder}/backend/server.js",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env",
+      "console": "integratedTerminal",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "presentation": {
+        "group": "tecnobloco",
+        "order": 3
+      }
+    }
+  ]
+}

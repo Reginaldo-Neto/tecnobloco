@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estoque — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .mod-stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-4);margin-bottom:var(--space-6);}
+    @media(max-width:1100px){.mod-stat-grid{grid-template-columns:repeat(3,1fr);}}
+    @media(max-width:700px){.mod-stat-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:440px){.mod-stat-grid{grid-template-columns:1fr;}}
+    .mod-fn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-3);}
+    .mod-fn-btn{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:var(--space-2);padding:var(--space-4) var(--space-3);
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.14);
+      border-radius:var(--border-radius);
+      color:var(--text-primary);
+      font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);
+      cursor:pointer;transition:all var(--transition);text-align:center;
+      position:relative;overflow:hidden;
+    }
+    .mod-fn-btn::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(124,58,237,0.4) 0%,transparent 60%);
+      opacity:0;transition:opacity var(--transition);
+    }
+    .mod-fn-btn:hover{
+      background:rgba(124,58,237,0.20);
+      border-color:rgba(124,58,237,0.50);
+      color:var(--text-primary);
+      transform:translateY(-2px);
+      box-shadow:0 4px 16px rgba(124,58,237,0.28);
+    }
+    .mod-fn-btn:hover::before{opacity:1;}
+    .mod-fn-icon{font-size:22px;position:relative;}
+    .stat-card{display:block;position:relative;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-4);transition:transform .2s,box-shadow .2s;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sc-a,#7c3aed),var(--sc-b,#a78bfa));}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+    .stat-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);}
+    .stat-card-title{font-size:var(--font-size-sm);color:var(--text-muted);font-weight:600;}
+    .stat-card-icon{font-size:1.5rem;opacity:.8;}
+    .stat-card-value{font-size:2.1rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;line-height:1;}
+    .stat-card-sub{font-size:var(--font-size-xs);color:var(--text-muted);}
+    .stat-card.success{--sc-a:#22c55e;--sc-b:#4ade80;}.stat-card.success .stat-card-value{color:#4ade80;}
+    .stat-card.warning{--sc-a:#f97316;--sc-b:#fb923c;}.stat-card.warning .stat-card-value{color:#fb923c;}
+    .stat-card.danger{--sc-a:#ef4444;--sc-b:#f87171;}.stat-card.danger .stat-card-value{color:#f87171;}
+    .stat-card.info{--sc-a:#3b82f6;--sc-b:#60a5fa;}.stat-card.info .stat-card-value{color:#60a5fa;}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div id="topbar-container"></div>
+  <main class="main-content" id="main-content">
+
+      <!-- ── Cards de estatísticas ─────────────────────────────────────── -->
+      <div class="mod-stat-grid">
+        <div class="stat-card">
+          <div class="stat-card-header"><span class="stat-card-title">Total de Produtos</span><span>📦</span></div>
+          <div class="stat-card-value" id="stat-produtos">—</div>
+          <div class="stat-card-sub">itens ativos</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-card-header"><span class="stat-card-title">Abaixo do Mínimo</span><span>⚠️</span></div>
+          <div class="stat-card-value" id="stat-minimo">—</div>
+          <div class="stat-card-sub">necessitam reposição</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-card-header"><span class="stat-card-title">Próx. ao Vencimento</span><span>📅</span></div>
+          <div class="stat-card-value" id="stat-validade">—</div>
+          <div class="stat-card-sub">vencem em 30 dias</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header"><span class="stat-card-title">Lotes Bloqueados</span><span>🔒</span></div>
+          <div class="stat-card-value" id="stat-bloqueios">—</div>
+          <div class="stat-card-sub">em quarentena</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-card-header"><span class="stat-card-title">Movimentações Hoje</span><span>🔄</span></div>
+          <div class="stat-card-value" id="stat-hoje">—</div>
+          <div class="stat-card-sub">entradas e saídas</div>
+        </div>
+      </div>
+
+      <!-- ── Grade de funções ──────────────────────────────────────────── -->
+      <div class="content-card" style="margin-bottom:var(--space-5);">
+        <div class="card-header"><h3 class="card-title">Funções do Setor</h3></div>
+        <div class="mod-fn-grid" id="mod-fn-grid">
+          <div class="page-loader"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+      <!-- ── Últimas movimentações ─────────────────────────────────────── -->
+      <div class="content-card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 class="card-title">Últimas Movimentações</h3>
+          <button class="btn btn-sm btn-secondary" id="mod-refresh">↻ Atualizar</button>
+        </div>
+        <div id="mod-list"><div class="page-loader"><span class="spinner"></span></div></div>
+      </div>
+
+  </main>
+</div>
+<script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/components.js"></script>
+<script src="../../assets/js/funcoes/_core.js"></script>
+<script src="../../assets/js/funcoes/global_forms.js"></script>
+<script src="../../assets/js/funcoes/estoque_forms.js"></script>
+<script src="../../assets/js/funcoes/estoque.js"></script>
+<script>
+'use strict';
+
+// Todas as 18 funções do setor, com nível mínimo para filtro visual
+const EST_FUNCTIONS = [
+  { fn: 'f01VerEscala',                  icon: '📅', label: 'Ver Escala',            nivel: 0 },
+  { fn: 'f02EntradaNotaFiscal',          icon: '📥', label: 'Entrada NF',            nivel: 3 },
+  { fn: 'f03Enderecamento',              icon: '🗺️', label: 'Endereçamento',         nivel: 3 },
+  { fn: 'f04GestaoPallets',              icon: '🏭', label: 'Pallets / Posições',    nivel: 2 },
+  { fn: 'f05MovimentacaoInterna',        icon: '🔄', label: 'Movimentação',          nivel: 3 },
+  { fn: 'f06GerenciamentoEstoques',      icon: '📦', label: 'Gerenciar Estoque',     nivel: 4 },
+  { fn: 'f07SeparacaoPedidos',           icon: '📋', label: 'Separação Pedidos',     nivel: 2 },
+  { fn: 'f08ConferenciaExpedicao',       icon: '🚛', label: 'Expedição',             nivel: 3 },
+  { fn: 'f09ImpressaoEtiquetas',         icon: '🏷️', label: 'Etiquetas',            nivel: 2 },
+  { fn: 'f10GerenciarRequisicaoMateriais', icon: '📋', label: 'Requisições Mat.',   nivel: 3 },
+  { fn: 'f11ControleValidade',           icon: '⏰', label: 'Controle Validade',    nivel: 3 },
+  { fn: 'f12BloqueioLote',               icon: '🔒', label: 'Bloqueio Lote',        nivel: 4 },
+  { fn: 'f13InventarioCiclico',          icon: '🔢', label: 'Inventário',           nivel: 3 },
+  { fn: 'f14AjusteEstoque',              icon: '⚖️', label: 'Ajuste Estoque',      nivel: 4 },
+  { fn: 'f15EstoqueMinMax',              icon: '📊', label: 'Min / Max',             nivel: 4 },
+  { fn: 'f16CurvaABC',                   icon: '📈', label: 'Curva ABC',             nivel: 4 },
+  { fn: 'f17GerenciarSolicitacaoUso',    icon: '📤', label: 'Solic. de Uso',        nivel: 4 },
+  { fn: 'f18GerenciarEscalas',           icon: '📆', label: 'Gerenciar Escalas',    nivel: 4 },
+];
+
+async function loadStats() {
+  try {
+    const d = await API.get('/estoque/stats');
+    const s = d.data || d;
+    document.getElementById('stat-produtos').textContent  = s.totalProdutos          ?? '—';
+    document.getElementById('stat-minimo').textContent    = s.produtosAbaixoMinimo   ?? '—';
+    document.getElementById('stat-validade').textContent  = s.proximosVencer         ?? '—';
+    document.getElementById('stat-bloqueios').textContent = s.lotesBloqueados        ?? '—';
+    document.getElementById('stat-hoje').textContent      = s.movimentacoesHoje      ?? '—';
+  } catch(e) { console.warn('stats', e); }
+}
+
+async function loadRecentes() {
+  const wrap = document.getElementById('mod-list');
+  try {
+    const d    = await API.get('/estoque/movimentacoes?limit=10');
+    const rows = Array.isArray(d) ? d : (d.data || []);
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📭</span><span class="empty-state-title">Nenhuma movimentação registrada</span></div>';
+      return;
+    }
+    const tipoBadge = { entrada:'success', saida:'danger', ajuste:'warning', transferencia:'info', perda:'danger' };
+    wrap.innerHTML = `<div style="overflow-x:auto;"><table class="table table-hover"><thead>
+      <tr><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Lote</th><th>Operador</th><th>Data/Hora</th></tr>
+      </thead><tbody>${rows.map(r => `<tr>
+        <td>${escapeHtml(r.produto_nome || '—')}</td>
+        <td><span class="badge badge-${tipoBadge[r.tipo] || 'muted'}">${escapeHtml(r.tipo || '—')}</span></td>
+        <td>${r.quantidade != null ? Number(r.quantidade).toFixed(3) : '—'} ${escapeHtml(r.unidade_medida || '')}</td>
+        <td>${escapeHtml(r.lote || '—')}</td>
+        <td>${escapeHtml(r.usuario_nome || '—')}</td>
+        <td>${r.criado_em ? new Date(r.criado_em).toLocaleString('pt-BR', {dateStyle:'short',timeStyle:'short'}) : '—'}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">${escapeHtml(e.message || 'Erro ao carregar')}</span></div>`;
+  }
+}
+
+function renderFunctions(user) {
+  const grid = document.getElementById('mod-fn-grid');
+  const nivel = user.nivel_acesso ?? 0;
+  const vis   = EST_FUNCTIONS.filter(f => nivel >= f.nivel);
+  if (!vis.length) {
+    grid.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🔒</span><span class="empty-state-title">Nenhuma função disponível para seu nível</span></div>';
+    return;
+  }
+  grid.innerHTML = vis.map(f =>
+    `<button class="mod-fn-btn" data-fn="${escapeHtml(f.fn)}">
+      <span class="mod-fn-icon">${f.icon}</span>
+      <span>${escapeHtml(f.label)}</span>
+    </button>`
+  ).join('');
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.mod-fn-btn');
+    if (!btn) return;
+    const fn = btn.getAttribute('data-fn');
+    if (window.FuncoesEstoque && typeof window.FuncoesEstoque[fn] === 'function') {
+      window.FuncoesEstoque[fn]();
+    }
+  });
+}
+
+async function onReady(user) {
+  await Promise.all([loadStats(), loadRecentes()]);
+  renderFunctions(user);
+  document.getElementById('mod-refresh').addEventListener('click', loadRecentes);
+}
+
+initPage({ title: 'Estoque', breadcrumb: ['Estoque'], requireNivel: 2, activeMenu: 'estoque', onReady });
+</script>
+</body>
+</html>

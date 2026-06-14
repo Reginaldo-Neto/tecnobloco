@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Máquinas — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    /* ── Stats ── */
+    .eq-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    @media (max-width: 1100px) { .eq-stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px)  { .eq-stat-grid { grid-template-columns: 1fr; } }
+
+    .stat-card { display:block; position:relative; overflow:hidden; background:rgba(255,255,255,0.04);
+      border:1px solid var(--border-color); border-radius:var(--border-radius); padding:var(--space-4);
+      transition:transform .2s, box-shadow .2s; }
+    .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg, var(--sc-a,#7c3aed), var(--sc-b,#a78bfa)); }
+    .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.3); }
+    .stat-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-2); }
+    .stat-card-title  { font-size:var(--font-size-sm); color:var(--text-muted); font-weight:600; }
+    .stat-card-icon   { font-size:1.4rem; opacity:.8; }
+    .stat-card-value  { font-size:2rem; font-weight:800; color:var(--text-primary); margin-bottom:4px; line-height:1; }
+    .stat-card-sub    { font-size:var(--font-size-xs); color:var(--text-muted); }
+    .stat-card.success { --sc-a:#22c55e; --sc-b:#4ade80; } .stat-card.success .stat-card-value { color:#4ade80; }
+    .stat-card.warning { --sc-a:#f97316; --sc-b:#fb923c; } .stat-card.warning .stat-card-value { color:#fb923c; }
+    .stat-card.danger  { --sc-a:#ef4444; --sc-b:#f87171; } .stat-card.danger  .stat-card-value { color:#f87171; }
+    .stat-card.info    { --sc-a:#3b82f6; --sc-b:#60a5fa; } .stat-card.info    .stat-card-value { color:#60a5fa; }
+
+    /* ── Filter bar ── */
+    .eq-filter-bar {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: var(--space-5);
+    }
+    .eq-filter-bar .form-control { max-width: 220px; }
+    .eq-filter-bar .eq-search    { flex: 1; min-width: 200px; max-width: 360px; }
+
+    /* ── Machine cards grid ── */
+    .eq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .eq-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-4);
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .eq-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .eq-card.operacional::before  { background: linear-gradient(90deg,#22c55e,#4ade80); }
+    .eq-card.em_manutencao::before { background: linear-gradient(90deg,#f97316,#fb923c); }
+    .eq-card.inativo::before      { background: linear-gradient(90deg,#64748b,#94a3b8); }
+    .eq-card.sucata::before       { background: linear-gradient(90deg,#ef4444,#f87171); }
+    .eq-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.35); border-color: rgba(124,58,237,.4); }
+
+    .eq-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+    .eq-card-name { font-weight: 700; font-size: var(--font-size-base); color: var(--text-primary); }
+    .eq-card-code { font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+
+    .eq-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .eq-badge.operacional  { background:rgba(34,197,94,.15);  color:#4ade80; border:1px solid rgba(34,197,94,.3); }
+    .eq-badge.em_manutencao{ background:rgba(249,115,22,.15); color:#fb923c; border:1px solid rgba(249,115,22,.3); }
+    .eq-badge.inativo      { background:rgba(100,116,139,.15);color:#94a3b8; border:1px solid rgba(100,116,139,.3); }
+    .eq-badge.sucata       { background:rgba(239,68,68,.15);  color:#f87171; border:1px solid rgba(239,68,68,.3); }
+
+    .eq-card-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2) var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .eq-meta-item { }
+    .eq-meta-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+    .eq-meta-val   { font-size: var(--font-size-sm); color: var(--text-secondary); font-weight: 500; }
+    .eq-meta-val.empty { color: var(--text-muted); font-style: italic; }
+
+    .eq-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-color);
+      padding-top: var(--space-3);
+      gap: var(--space-2);
+    }
+    .eq-os-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .eq-os-badge.ok      { background:rgba(34,197,94,.1);  color:#4ade80; }
+    .eq-os-badge.alert   { background:rgba(251,146,60,.15); color:#fb923c; }
+    .eq-os-badge.danger  { background:rgba(239,68,68,.15);  color:#f87171; }
+
+    /* ── Prontuário modal tabs ── */
+    .pront-tabs { display:flex; gap:0; border-bottom:1px solid var(--border-color); margin-bottom:var(--space-4); }
+    .pront-tab {
+      padding: var(--space-2) var(--space-4);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
+    }
+    .pront-tab:hover { color: var(--text-secondary); }
+    .pront-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .pront-panel { display: none; }
+    .pront-panel.active { display: block; }
+
+    .pront-info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    @media (max-width: 640px) { .pront-info-grid { grid-template-columns: 1fr 1fr; } }
+    .pront-field { }
+    .pront-field-label { font-size: 10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+    .pront-field-val   { font-size: var(--font-size-sm); color:var(--text-primary); font-weight:500; }
+    .pront-field-val.empty { color:var(--text-muted); font-style:italic; }
+
+    .pront-totals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    @media (max-width: 600px) { .pront-totals-grid { grid-template-columns: 1fr; } }
+    .pront-total-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-4);
+      text-align: center;
+    }
+    .pront-total-value { font-size: 2rem; font-weight: 800; color: var(--color-primary); }
+    .pront-total-label { font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 4px; }
+
+    /* ── OS prioridade badge inline ── */
+    .pri-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700; }
+    .pri-badge.critica { background:rgba(239,68,68,.2);  color:#f87171; }
+    .pri-badge.alta    { background:rgba(249,115,22,.2); color:#fb923c; }
+    .pri-badge.media   { background:rgba(234,179,8,.2);  color:#fbbf24; }
+    .pri-badge.baixa   { background:rgba(34,197,94,.2);  color:#4ade80; }
+
+    .status-os-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+    .status-os-badge.aberta          { background:rgba(59,130,246,.2);  color:#60a5fa; }
+    .status-os-badge.em_andamento    { background:rgba(234,179,8,.2);   color:#fbbf24; }
+    .status-os-badge.aguardando_peca { background:rgba(249,115,22,.2);  color:#fb923c; }
+    .status-os-badge.concluida       { background:rgba(34,197,94,.2);   color:#4ade80; }
+    .status-os-badge.cancelada       { background:rgba(100,116,139,.2); color:#94a3b8; }
+
+    .prev-tipo-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; background:rgba(124,58,237,.15); color:#a78bfa; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div id="topbar-container"></div>
+  <main class="main-content" id="main-content">
+
+    <!-- Stats -->
+    <div class="eq-stat-grid">
+      <div class="stat-card">
+        <div class="stat-card-header"><span class="stat-card-title">Total de Máquinas</span><span class="stat-card-icon">⚙️</span></div>
+        <div class="stat-card-value" id="stat-total">—</div>
+        <div class="stat-card-sub">cadastradas no sistema</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-card-header"><span class="stat-card-title">Operacionais</span><span class="stat-card-icon">✅</span></div>
+        <div class="stat-card-value" id="stat-operacional">—</div>
+        <div class="stat-card-sub">funcionando normalmente</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-card-header"><span class="stat-card-title">Em Manutenção</span><span class="stat-card-icon">🔧</span></div>
+        <div class="stat-card-value" id="stat-manutencao">—</div>
+        <div class="stat-card-sub">paradas para serviço</div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-card-header"><span class="stat-card-title">Inativas / Sucata</span><span class="stat-card-icon">⛔</span></div>
+        <div class="stat-card-value" id="stat-inativas">—</div>
+        <div class="stat-card-sub">desligadas ou descartadas</div>
+      </div>
+    </div>
+
+    <!-- Filter bar + actions -->
+    <div class="content-card" style="margin-bottom:var(--space-5);">
+      <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
+        <h3 class="card-title">Máquinas e Equipamentos</h3>
+        <button class="btn btn-primary btn-sm" id="btn-nova-maquina" style="display:none;">+ Nova Máquina</button>
+      </div>
+      <div class="eq-filter-bar">
+        <input type="search" class="form-control eq-search" id="eq-search" placeholder="Buscar por nome, código ou localização..." />
+        <select class="form-control" id="filter-status" style="max-width:200px;">
+          <option value="">Todos os status</option>
+          <option value="operacional">Operacional</option>
+          <option value="em_manutencao">Em Manutenção</option>
+          <option value="inativo">Inativo</option>
+          <option value="sucata">Sucata</option>
+        </select>
+        <select class="form-control" id="filter-depto" style="max-width:200px;">
+          <option value="">Todos os setores</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" id="btn-refresh">↻ Atualizar</button>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="eq-grid" id="eq-grid">
+      <div class="page-loader" style="grid-column:1/-1;"><span class="spinner"></span></div>
+    </div>
+
+    <div id="eq-empty" style="display:none; text-align:center; padding:48px 16px; color:var(--text-muted);">
+      <div style="font-size:3rem; margin-bottom:12px;">⚙️</div>
+      <p>Nenhuma máquina encontrada com os filtros selecionados.</p>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Prontuário da Máquina
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-pront" class="modal-backdrop modal-overlay" style="display:none;">
+  <div class="modal modal-xl" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" id="pront-title">Prontuário</h3>
+        <div style="font-size:var(--font-size-xs); color:var(--text-muted); margin-top:2px;" id="pront-subtitle"></div>
+      </div>
+      <button class="modal-close" id="pront-close" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:0;">
+
+      <!-- Totais rápidos -->
+      <div class="pront-totals-grid" id="pront-totals">
+        <div class="pront-total-card">
+          <div class="pront-total-value" id="pront-tot-os">—</div>
+          <div class="pront-total-label">Ordens de Serviço</div>
+        </div>
+        <div class="pront-total-card">
+          <div class="pront-total-value" id="pront-tot-horas">—</div>
+          <div class="pront-total-label">Horas de Manutenção</div>
+        </div>
+        <div class="pront-total-card">
+          <div class="pront-total-value" id="pront-tot-custo">—</div>
+          <div class="pront-total-label">Custo Total (R$)</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="pront-tabs">
+        <div class="pront-tab active" data-tab="info">📋 Dados Técnicos</div>
+        <div class="pront-tab" data-tab="os">🔧 Histórico de OS</div>
+        <div class="pront-tab" data-tab="manual">📄 Manual PDF</div>
+      </div>
+
+      <!-- Tab: Dados Técnicos -->
+      <div class="pront-panel active" id="tab-info">
+        <div class="pront-info-grid" id="pront-info-grid"></div>
+        <div id="pront-status-actions" style="margin-top:var(--space-3); display:flex; gap:var(--space-2); flex-wrap:wrap;"></div>
+      </div>
+
+      <!-- Tab: Histórico de OS -->
+      <div class="pront-panel" id="tab-os">
+        <div style="overflow-x:auto;">
+          <table class="table" id="pront-os-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Descrição</th>
+                <th>Motivo</th>
+                <th>Causa Raiz</th>
+                <th>Técnico</th>
+                <th>Abertura</th>
+              </tr>
+            </thead>
+            <tbody id="pront-os-tbody"></tbody>
+          </table>
+        </div>
+        <div id="pront-os-empty" style="display:none; text-align:center; padding:32px; color:var(--text-muted);">Nenhuma OS registrada para esta máquina.</div>
+      </div>
+
+      <!-- Tab: Manual PDF -->
+      <div class="pront-panel" id="tab-manual">
+        <div id="pront-manual-atual" style="margin-bottom:var(--space-4);"></div>
+        <div id="pront-manual-upload" style="display:none;">
+          <div style="font-size:var(--font-size-sm); color:var(--text-secondary); margin-bottom:var(--space-3);">
+            Faça upload do manual em PDF (máx. 20 MB):
+          </div>
+          <div style="display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap;">
+            <input type="file" id="pront-pdf-input" accept="application/pdf" class="form-control" style="max-width:360px;" />
+            <button class="btn btn-primary btn-sm" id="pront-pdf-upload-btn">Enviar PDF</button>
+          </div>
+          <div id="pront-pdf-progress" style="display:none; margin-top:var(--space-3); color:var(--text-muted); font-size:var(--font-size-sm);">Enviando...</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; gap:var(--space-3);">
+      <div id="pront-footer-left" style="font-size:var(--font-size-xs); color:var(--text-muted);"></div>
+      <div style="display:flex; gap:var(--space-2);">
+        <button class="btn btn-secondary" id="pront-btn-nova-os">+ Abrir OS</button>
+        <button class="btn btn-ghost" id="pront-close-footer">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Nova Máquina
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-nova-maquina" class="modal-backdrop modal-overlay" style="display:none;">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 class="modal-title" id="nova-maq-title">Nova Máquina</h3>
+      <button class="modal-close" id="nova-maq-close" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-nova-maquina" novalidate>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3);">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label required" for="nm-nome">Nome da Máquina</label>
+            <input type="text" id="nm-nome" class="form-control" placeholder="Ex: Betoneira BT-400" required maxlength="200" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-codigo">Código / TAG</label>
+            <input type="text" id="nm-codigo" class="form-control" placeholder="Ex: EQ-001" maxlength="50" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-tipo">Tipo</label>
+            <input type="text" id="nm-tipo" class="form-control" placeholder="Ex: Betoneira, Compressor..." maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-marca">Marca</label>
+            <input type="text" id="nm-marca" class="form-control" placeholder="Ex: Menegotti" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-modelo">Modelo</label>
+            <input type="text" id="nm-modelo" class="form-control" placeholder="Ex: BT-400E" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-serie">Número de Série</label>
+            <input type="text" id="nm-serie" class="form-control" placeholder="Ex: 2024-BR-00123" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-aquisicao">Data de Aquisição</label>
+            <input type="date" id="nm-aquisicao" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="nm-depto">Setor / Linha</label>
+            <select id="nm-depto" class="form-control">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label" for="nm-local">Localização</label>
+            <input type="text" id="nm-local" class="form-control" placeholder="Ex: Linha 1 — Galpão A" maxlength="200" />
+          </div>
+        </div>
+        <div id="nova-maq-error" class="alert alert-danger" style="display:none; margin-top:var(--space-3);">
+          <span class="alert-icon">⚠</span>
+          <span id="nova-maq-error-text"></span>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="nova-maq-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="nova-maq-submit">Cadastrar Máquina</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/components.js"></script>
+<script>
+'use strict';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let _allEquipamentos = [];
+let _deptos          = [];
+let _currentEquipId  = null;
+let _userNivel       = 0;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+initPage({
+  title:       'Máquinas e Equipamentos',
+  breadcrumb:  ['Manutenção', 'Máquinas'],
+  activeMenu:  'manutencao',
+  requireNivel: 2,
+  departamentos: ['Manutenção'],
+  onReady(user) {
+    _userNivel = user.nivel_acesso || 0;
+    if (_userNivel >= 4) {
+      document.getElementById('btn-nova-maquina').style.display = 'inline-flex';
+    }
+    _carregarDeptos();
+    _carregarEquipamentos();
+    _bindEvents();
+  },
+});
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+async function _carregarDeptos() {
+  try {
+    const res = await API.get('/global/departamentos');
+    _deptos = Array.isArray(res) ? res : (res.data || []);
+    const sel = document.getElementById('filter-depto');
+    const selNM = document.getElementById('nm-depto');
+    _deptos.forEach(d => {
+      sel.insertAdjacentHTML('beforeend', `<option value="${d.id}">${escapeHtml(d.nome)}</option>`);
+      selNM.insertAdjacentHTML('beforeend', `<option value="${d.id}">${escapeHtml(d.nome)}</option>`);
+    });
+  } catch { /* silencioso */ }
+}
+
+async function _carregarEquipamentos() {
+  const grid = document.getElementById('eq-grid');
+  grid.innerHTML = '<div class="page-loader" style="grid-column:1/-1;"><span class="spinner"></span></div>';
+  document.getElementById('eq-empty').style.display = 'none';
+
+  try {
+    const res = await API.get('/manutencao/equipamentos');
+    _allEquipamentos = Array.isArray(res) ? res : (res.data || []);
+    _atualizarStats();
+    _renderizarCards(_allEquipamentos);
+  } catch (err) {
+    grid.innerHTML = `<div style="grid-column:1/-1; color:var(--color-danger); padding:32px; text-align:center;">Erro ao carregar equipamentos: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function _atualizarStats() {
+  const total      = _allEquipamentos.length;
+  const operacional = _allEquipamentos.filter(e => e.status === 'operacional').length;
+  const manut      = _allEquipamentos.filter(e => e.status === 'em_manutencao').length;
+  const inativas   = _allEquipamentos.filter(e => e.status === 'inativo' || e.status === 'sucata').length;
+
+  document.getElementById('stat-total').textContent      = total;
+  document.getElementById('stat-operacional').textContent = operacional;
+  document.getElementById('stat-manutencao').textContent  = manut;
+  document.getElementById('stat-inativas').textContent    = inativas;
+}
+
+// ── Render cards ──────────────────────────────────────────────────────────────
+function _renderizarCards(lista) {
+  const grid  = document.getElementById('eq-grid');
+  const empty = document.getElementById('eq-empty');
+
+  if (!lista.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const statusLabel = {
+    operacional:   '● Operacional',
+    em_manutencao: '● Em Manutenção',
+    inativo:       '● Inativo',
+    sucata:        '● Sucata',
+  };
+
+  grid.innerHTML = lista.map(eq => {
+    const osAbertas = Number(eq.os_abertas || 0);
+    const osCls  = osAbertas === 0 ? 'ok' : osAbertas < 3 ? 'alert' : 'danger';
+    const osText = osAbertas === 0 ? '✓ Sem OS abertas' : `⚠ ${osAbertas} OS aberta${osAbertas > 1 ? 's' : ''}`;
+    const stLabel = statusLabel[eq.status] || eq.status;
+    const stCls   = eq.status || 'inativo';
+
+    return `
+      <div class="eq-card ${stCls}" data-id="${eq.id}">
+        <div class="eq-card-head">
+          <div>
+            <div class="eq-card-name">${escapeHtml(eq.nome)}</div>
+            <div class="eq-card-code">${eq.codigo ? escapeHtml(eq.codigo) : '<em>sem código</em>'}</div>
+          </div>
+          <span class="eq-badge ${stCls}">${stLabel}</span>
+        </div>
+        <div class="eq-card-meta">
+          <div class="eq-meta-item">
+            <div class="eq-meta-label">Tipo</div>
+            <div class="eq-meta-val ${!eq.tipo ? 'empty' : ''}">${eq.tipo ? escapeHtml(eq.tipo) : '—'}</div>
+          </div>
+          <div class="eq-meta-item">
+            <div class="eq-meta-label">Setor</div>
+            <div class="eq-meta-val ${!eq.departamento_nome ? 'empty' : ''}">${eq.departamento_nome ? escapeHtml(eq.departamento_nome) : '—'}</div>
+          </div>
+          <div class="eq-meta-item">
+            <div class="eq-meta-label">Marca / Modelo</div>
+            <div class="eq-meta-val ${!eq.marca && !eq.modelo ? 'empty' : ''}">${[eq.marca, eq.modelo].filter(Boolean).map(v => escapeHtml(v)).join(' / ') || '—'}</div>
+          </div>
+          <div class="eq-meta-item">
+            <div class="eq-meta-label">Localização</div>
+            <div class="eq-meta-val ${!eq.localizacao ? 'empty' : ''}">${eq.localizacao ? escapeHtml(eq.localizacao) : '—'}</div>
+          </div>
+        </div>
+        <div class="eq-card-footer">
+          <span class="eq-os-badge ${osCls}">${osText}</span>
+          <button class="btn btn-sm btn-secondary btn-prontuario" data-id="${eq.id}">
+            📋 Prontuário
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function _aplicarFiltros() {
+  const busca  = document.getElementById('eq-search').value.toLowerCase().trim();
+  const status = document.getElementById('filter-status').value;
+  const depto  = document.getElementById('filter-depto').value;
+
+  const filtrado = _allEquipamentos.filter(eq => {
+    if (status && eq.status !== status) return false;
+    if (depto  && String(eq.departamento_id) !== depto) return false;
+    if (busca) {
+      const haystack = [eq.nome, eq.codigo, eq.localizacao, eq.marca, eq.modelo]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!haystack.includes(busca)) return false;
+    }
+    return true;
+  });
+
+  _renderizarCards(filtrado);
+}
+
+// ── Prontuário ────────────────────────────────────────────────────────────────
+async function _abrirProntuario(id) {
+  _currentEquipId = id;
+  const modal = document.getElementById('modal-pront');
+  modal.style.display = 'flex';
+
+  // reset
+  document.getElementById('pront-title').textContent      = 'Carregando...';
+  document.getElementById('pront-subtitle').textContent   = '';
+  document.getElementById('pront-tot-os').textContent     = '—';
+  document.getElementById('pront-tot-horas').textContent  = '—';
+  document.getElementById('pront-tot-custo').textContent  = '—';
+  document.getElementById('pront-info-grid').innerHTML    = '<div class="page-loader"><span class="spinner"></span></div>';
+  document.getElementById('pront-os-tbody').innerHTML     = '';
+
+  // activate first tab
+  document.querySelectorAll('.pront-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pront-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.pront-tab[data-tab="info"]').classList.add('active');
+  document.getElementById('tab-info').classList.add('active');
+
+  try {
+    const res  = await API.get(`/manutencao/equipamentos/${id}/prontuario`);
+    const data = res.data || res;
+    _renderProntuario(data);
+  } catch (err) {
+    document.getElementById('pront-info-grid').innerHTML =
+      `<p style="color:var(--color-danger); grid-column:1/-1;">Erro ao carregar: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function _renderProntuario({ equipamento: eq, os, totais }) {
+  // Header
+  document.getElementById('pront-title').textContent    = eq.nome;
+  document.getElementById('pront-subtitle').textContent = eq.codigo ? `TAG: ${eq.codigo}` : '';
+  document.getElementById('pront-footer-left').textContent = `Status: ${_statusLabel(eq.status)}`;
+
+  // Totais
+  document.getElementById('pront-tot-os').textContent    = totais.total_os;
+  document.getElementById('pront-tot-horas').textContent = Number(totais.total_horas || 0).toFixed(1) + 'h';
+  document.getElementById('pront-tot-custo').textContent =
+    Number(totais.custo_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+  // Info grid
+  const fields = [
+    { l: 'Código / TAG',      v: eq.codigo },
+    { l: 'Tipo',              v: eq.tipo },
+    { l: 'Setor',             v: eq.departamento_nome },
+    { l: 'Marca',             v: eq.marca },
+    { l: 'Modelo',            v: eq.modelo },
+    { l: 'Número de Série',   v: eq.numero_serie },
+    { l: 'Data de Aquisição', v: eq.data_aquisicao ? _fmtDate(eq.data_aquisicao) : null },
+    { l: 'Localização',       v: eq.localizacao },
+    { l: 'Status',            v: _statusLabel(eq.status) },
+  ];
+  document.getElementById('pront-info-grid').innerHTML = fields.map(f => `
+    <div class="pront-field">
+      <div class="pront-field-label">${f.l}</div>
+      <div class="pront-field-val ${!f.v ? 'empty' : ''}">${f.v ? escapeHtml(String(f.v)) : '—'}</div>
+    </div>
+  `).join('');
+
+  // Status actions (nível >= 2)
+  const actions = document.getElementById('pront-status-actions');
+  if (_userNivel >= 2) {
+    const status = eq.status;
+    const btnMap = {
+      operacional:   [{ s:'em_manutencao', lbl:'🔧 Em Manutenção', cls:'btn-warning' }],
+      em_manutencao: [{ s:'operacional',   lbl:'✅ Operacional',    cls:'btn-success' }],
+      inativo:       [{ s:'operacional',   lbl:'✅ Reativar',       cls:'btn-success' }],
+    };
+    const btns = (btnMap[status] || []).concat([
+      status !== 'inativo' ? { s:'inativo', lbl:'⏸ Desativar', cls:'btn-secondary' } : null,
+    ]).filter(Boolean);
+    actions.innerHTML = btns.map(b =>
+      `<button class="btn btn-sm ${b.cls} btn-status-change" data-status="${b.s}">${b.lbl}</button>`
+    ).join('');
+  } else {
+    actions.innerHTML = '';
+  }
+
+  // OS table
+  const osTbody = document.getElementById('pront-os-tbody');
+  const osEmpty = document.getElementById('pront-os-empty');
+  if (!os.length) {
+    osTbody.innerHTML = '';
+    document.getElementById('pront-os-table').style.display = 'none';
+    osEmpty.style.display = 'block';
+  } else {
+    document.getElementById('pront-os-table').style.display = '';
+    osEmpty.style.display = 'none';
+    osTbody.innerHTML = os.map(o => `
+      <tr>
+        <td><code>${escapeHtml(o.codigo)}</code></td>
+        <td>${escapeHtml(o.tipo)}</td>
+        <td><span class="pri-badge ${o.prioridade}">${escapeHtml(o.prioridade)}</span></td>
+        <td><span class="status-os-badge ${o.status}">${_fmtStatusOS(o.status)}</span></td>
+        <td style="max-width:200px; white-space:normal; font-size:var(--font-size-sm);">${escapeHtml(o.descricao || '—')}</td>
+        <td style="max-width:160px; white-space:normal; font-size:var(--font-size-sm);">${escapeHtml(o.motivo_manutencao || '—')}</td>
+        <td style="max-width:160px; white-space:normal; font-size:var(--font-size-sm);">${escapeHtml(o.causa_raiz || '—')}</td>
+        <td>${o.tecnico_nome ? escapeHtml(o.tecnico_nome) : '<em style="color:var(--text-muted)">—</em>'}</td>
+        <td style="white-space:nowrap;">${_fmtDatetime(o.data_abertura)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Manual PDF tab
+  const manualAtual = document.getElementById('pront-manual-atual');
+  const manualUpload = document.getElementById('pront-manual-upload');
+  if (eq.manual_pdf) {
+    manualAtual.innerHTML = `
+      <div style="display:flex; align-items:center; gap:var(--space-3); padding:var(--space-4); background:rgba(255,255,255,.03); border:1px solid var(--border-color); border-radius:var(--border-radius);">
+        <span style="font-size:2rem;">📄</span>
+        <div style="flex:1;">
+          <div style="font-weight:600; color:var(--text-primary);">Manual disponível</div>
+          <div style="font-size:var(--font-size-xs); color:var(--text-muted);">${escapeHtml(eq.manual_pdf.split('/').pop())}</div>
+        </div>
+        <a href="${escapeHtml(eq.manual_pdf)}" target="_blank" class="btn btn-sm btn-primary">Abrir PDF</a>
+      </div>`;
+  } else {
+    manualAtual.innerHTML = `<p style="color:var(--text-muted); font-size:var(--font-size-sm);">Nenhum manual cadastrado para esta máquina.</p>`;
+  }
+  if (_userNivel >= 2) {
+    manualUpload.style.display = 'block';
+    // bind upload button
+    const uploadBtn = document.getElementById('pront-pdf-upload-btn');
+    const fileInput = document.getElementById('pront-pdf-input');
+    const progress  = document.getElementById('pront-pdf-progress');
+    uploadBtn.onclick = async () => {
+      const file = fileInput.files[0];
+      if (!file) { showToast('Selecione um arquivo PDF.', 'warning'); return; }
+      uploadBtn.disabled = true;
+      progress.style.display = 'block';
+      try {
+        const formData = new FormData();
+        formData.append('manual', file);
+        const token = API.getToken();
+        const base  = API.getBase();
+        const res   = await fetch(`${base}/manutencao/equipamentos/${_currentEquipId}/manual`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'Erro no upload');
+        showToast('Manual enviado com sucesso!', 'success');
+        // reload prontuario
+        const res2 = await API.get(`/manutencao/equipamentos/${_currentEquipId}/prontuario`);
+        _renderProntuario(res2.data || res2);
+        document.querySelector('.pront-tab[data-tab="manual"]').click();
+      } catch (err) {
+        showToast(err.message || 'Erro ao enviar PDF', 'danger');
+      } finally {
+        uploadBtn.disabled = false;
+        progress.style.display = 'none';
+        fileInput.value = '';
+      }
+    };
+  } else {
+    manualUpload.style.display = 'none';
+  }
+}
+
+// ── Modal: Nova Máquina ───────────────────────────────────────────────────────
+function _abrirModalNovaMaquina() {
+  document.getElementById('form-nova-maquina').reset();
+  document.getElementById('nova-maq-error').style.display = 'none';
+  document.getElementById('modal-nova-maquina').style.display = 'flex';
+}
+
+async function _submitNovaMaquina() {
+  const errEl  = document.getElementById('nova-maq-error');
+  const errTxt = document.getElementById('nova-maq-error-text');
+  const btn    = document.getElementById('nova-maq-submit');
+  errEl.style.display = 'none';
+
+  const nome = document.getElementById('nm-nome').value.trim();
+  if (!nome) {
+    errTxt.textContent = 'Nome da máquina é obrigatório.';
+    errEl.style.display = 'flex';
+    return;
+  }
+
+  const payload = {
+    nome,
+    codigo:        document.getElementById('nm-codigo').value.trim() || undefined,
+    tipo:          document.getElementById('nm-tipo').value.trim() || undefined,
+    marca:         document.getElementById('nm-marca').value.trim() || undefined,
+    modelo:        document.getElementById('nm-modelo').value.trim() || undefined,
+    numero_serie:  document.getElementById('nm-serie').value.trim() || undefined,
+    data_aquisicao: document.getElementById('nm-aquisicao').value || undefined,
+    departamento_id: document.getElementById('nm-depto').value || undefined,
+    localizacao:   document.getElementById('nm-local').value.trim() || undefined,
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Cadastrando...';
+  try {
+    await API.post('/manutencao/equipamentos', payload);
+    showToast('Máquina cadastrada com sucesso!', 'success');
+    document.getElementById('modal-nova-maquina').style.display = 'none';
+    _carregarEquipamentos();
+  } catch (err) {
+    errTxt.textContent = err.message || 'Erro ao cadastrar máquina.';
+    errEl.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Cadastrar Máquina';
+  }
+}
+
+// ── Status change ─────────────────────────────────────────────────────────────
+async function _mudarStatus(novoStatus) {
+  if (!_currentEquipId) return;
+  const ok = await showConfirm(`Confirmar mudança de status para "${_statusLabel(novoStatus)}"?`, {
+    confirmType: novoStatus === 'inativo' || novoStatus === 'sucata' ? 'danger' : 'primary',
+  });
+  if (!ok) return;
+  try {
+    await API.put(`/manutencao/equipamentos/${_currentEquipId}`, { status: novoStatus });
+    showToast('Status atualizado!', 'success');
+    // atualiza o card local e reabre o prontuário
+    _allEquipamentos = _allEquipamentos.map(e =>
+      e.id === _currentEquipId ? { ...e, status: novoStatus } : e
+    );
+    _atualizarStats();
+    _aplicarFiltros();
+    _abrirProntuario(_currentEquipId);
+  } catch (err) {
+    showToast(err.message || 'Erro ao atualizar status', 'danger');
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function _statusLabel(s) {
+  return { operacional: 'Operacional', em_manutencao: 'Em Manutenção', inativo: 'Inativo', sucata: 'Sucata' }[s] || s;
+}
+
+function _fmtStatusOS(s) {
+  return {
+    aberta: 'Aberta', em_andamento: 'Em Andamento',
+    aguardando_peca: 'Ag. Peça', concluida: 'Concluída', cancelada: 'Cancelada',
+  }[s] || s;
+}
+
+function _fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return isNaN(dt) ? d : dt.toLocaleDateString('pt-BR');
+}
+
+function _fmtDatetime(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return isNaN(dt) ? d : dt.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+// ── Event bindings ────────────────────────────────────────────────────────────
+function _bindEvents() {
+  // Filters
+  document.getElementById('eq-search').addEventListener('input',  _aplicarFiltros);
+  document.getElementById('filter-status').addEventListener('change', _aplicarFiltros);
+  document.getElementById('filter-depto').addEventListener('change',  _aplicarFiltros);
+  document.getElementById('btn-refresh').addEventListener('click',    _carregarEquipamentos);
+
+  // Cards click — prontuário via delegation
+  document.getElementById('eq-grid').addEventListener('click', e => {
+    const btn = e.target.closest('.btn-prontuario');
+    if (btn) _abrirProntuario(Number(btn.dataset.id));
+  });
+
+  // Prontuário modal
+  document.getElementById('pront-close').addEventListener('click', () => {
+    document.getElementById('modal-pront').style.display = 'none';
+  });
+  document.getElementById('pront-close-footer').addEventListener('click', () => {
+    document.getElementById('modal-pront').style.display = 'none';
+  });
+  document.getElementById('modal-pront').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-pront'))
+      document.getElementById('modal-pront').style.display = 'none';
+  });
+
+  // Tabs (via delegation to handle re-rendered tabs after reload)
+  document.getElementById('modal-pront').addEventListener('click', e => {
+    const tab = e.target.closest('.pront-tab');
+    if (!tab) return;
+    document.querySelectorAll('.pront-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pront-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = document.getElementById(`tab-${tab.dataset.tab}`);
+    if (panel) panel.classList.add('active');
+  });
+
+  // Status actions (via delegation — botões renderizados dinamicamente)
+  document.getElementById('pront-status-actions').addEventListener('click', e => {
+    const btn = e.target.closest('.btn-status-change');
+    if (btn) _mudarStatus(btn.dataset.status);
+  });
+
+  // Nova OS a partir do prontuário — abre manutenção com o equipamento pré-selecionado via URL
+  document.getElementById('pront-btn-nova-os').addEventListener('click', () => {
+    document.getElementById('modal-pront').style.display = 'none';
+    window.location.href = `/pages/manutencao/index.html?equipamento=${_currentEquipId}`;
+  });
+
+  // Nova Máquina modal
+  document.getElementById('btn-nova-maquina').addEventListener('click', _abrirModalNovaMaquina);
+  document.getElementById('nova-maq-close').addEventListener('click', () => {
+    document.getElementById('modal-nova-maquina').style.display = 'none';
+  });
+  document.getElementById('nova-maq-cancel').addEventListener('click', () => {
+    document.getElementById('modal-nova-maquina').style.display = 'none';
+  });
+  document.getElementById('modal-nova-maquina').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-nova-maquina'))
+      document.getElementById('modal-nova-maquina').style.display = 'none';
+  });
+  document.getElementById('nova-maq-submit').addEventListener('click', _submitNovaMaquina);
+  document.getElementById('form-nova-maquina').addEventListener('submit', e => {
+    e.preventDefault();
+    _submitNovaMaquina();
+  });
+
+  // Esc fecha qualquer modal aberto
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('modal-pront').style.display = 'none';
+      document.getElementById('modal-nova-maquina').style.display = 'none';
+    }
+  });
+}
+</script>
+</body>
+</html>

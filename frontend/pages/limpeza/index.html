@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Limpeza — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .limp-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 1100px) { .limp-stat-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 700px)  { .limp-stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 450px)  { .limp-stat-grid { grid-template-columns: 1fr; } }
+
+    .limp-fn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: var(--space-3);
+    }
+    .limp-fn-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-3);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+      text-align: center;
+    }
+    .limp-fn-btn:hover {
+      background: rgba(34,197,94,0.1);
+      border-color: rgba(34,197,94,0.3);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+    .limp-fn-icon { font-size: 22px; }
+
+    .limp-alert-bar {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-5);
+    }
+    .limp-alert-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+    }
+    .limp-alert-chip.danger  { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .limp-alert-chip.warning { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+    .limp-alert-chip.info    { background: rgba(59,130,246,0.12);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .limp-alert-chip.success { background: rgba(34,197,94,0.12);   color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+
+    .stat-card{display:block;position:relative;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-4);transition:transform .2s,box-shadow .2s;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sc-a,#7c3aed),var(--sc-b,#a78bfa));}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+    .stat-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);}
+    .stat-card-title{font-size:var(--font-size-sm);color:var(--text-muted);font-weight:600;}
+    .stat-card-icon{font-size:1.5rem;opacity:.8;}
+    .stat-card-value{font-size:2.1rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;line-height:1;}
+    .stat-card-sub{font-size:var(--font-size-xs);color:var(--text-muted);}
+    .stat-card.success{--sc-a:#22c55e;--sc-b:#4ade80;}.stat-card.success .stat-card-value{color:#4ade80;}
+    .stat-card.warning{--sc-a:#f97316;--sc-b:#fb923c;}.stat-card.warning .stat-card-value{color:#fb923c;}
+    .stat-card.danger{--sc-a:#ef4444;--sc-b:#f87171;}.stat-card.danger .stat-card-value{color:#f87171;}
+    .stat-card.info{--sc-a:#3b82f6;--sc-b:#60a5fa;}.stat-card.info .stat-card-value{color:#60a5fa;}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div id="topbar-container"></div>
+  <main class="main-content" id="main-content">
+
+      <!-- Alertas -->
+      <div id="limp-alerts" class="limp-alert-bar"></div>
+
+      <!-- Stats -->
+      <div class="limp-stat-grid" id="limp-stats">
+        <div class="stat-card warning">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Solicitações Pendentes</span>
+            <span class="stat-card-icon">🧹</span>
+          </div>
+          <div class="stat-card-value" id="stat-sol-pendentes">—</div>
+          <div class="stat-card-sub">pendentes / em andamento</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Checklist Hoje</span>
+            <span class="stat-card-icon">✅</span>
+          </div>
+          <div class="stat-card-value" id="stat-checklist-hoje">—</div>
+          <div class="stat-card-sub">registros do dia</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Rotinas Ativas</span>
+            <span class="stat-card-icon">📅</span>
+          </div>
+          <div class="stat-card-value" id="stat-total-rotinas">—</div>
+          <div class="stat-card-sub">tarefas cadastradas</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Itens Críticos</span>
+            <span class="stat-card-icon">⚠️</span>
+          </div>
+          <div class="stat-card-value" id="stat-itens-criticos">—</div>
+          <div class="stat-card-sub">estoque abaixo do mínimo</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-card-header">
+            <span class="stat-card-title">Caçambas Pendentes</span>
+            <span class="stat-card-icon">🗑️</span>
+          </div>
+          <div class="stat-card-value" id="stat-cacambas-pend">—</div>
+          <div class="stat-card-sub">aguardando coleta</div>
+        </div>
+      </div>
+
+      <!-- Grade de funções -->
+      <div class="content-card" style="margin-bottom:var(--space-5);">
+        <div class="card-header">
+          <h3 class="card-title">Funções do Setor</h3>
+        </div>
+        <div class="limp-fn-grid" id="limp-fn-grid">
+          <div class="page-loader"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+      <!-- Solicitações recentes -->
+      <div class="content-card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 class="card-title">Solicitações Recentes</h3>
+          <button class="btn btn-sm btn-secondary" id="limp-refresh-sol">↻ Atualizar</button>
+        </div>
+        <div id="limp-sol-table-wrap">
+          <div class="page-loader"><span class="spinner"></span></div>
+        </div>
+      </div>
+
+  </main>
+</div>
+
+<script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/components.js"></script>
+<script src="../../assets/js/funcoes/_core.js"></script>
+<script src="../../assets/js/funcoes/global_forms.js"></script>
+<script src="../../assets/js/funcoes/limpeza_forms.js"></script>
+<script src="../../assets/js/funcoes/limpeza.js"></script>
+<script>
+'use strict';
+
+const LIMP_FUNCTIONS = [
+  { fn: 'f01VerSolicitacoes',          icon: '🧹', label: 'Ver Solicitações',         nivel: 1 },
+  { fn: 'f02GerenciarSolicitacoes',    icon: '📋', label: 'Gerenciar Solicitações',   nivel: 3 },
+  { fn: 'f03CronogramaRotina',         icon: '📅', label: 'Cronograma de Rotina',     nivel: 1 },
+  { fn: 'f04ChecklistExecucao',        icon: '✅', label: 'Checklist de Execução',    nivel: 1 },
+  { fn: 'f05GestaoResiduos',           icon: '♻️', label: 'Gestão de Resíduos',       nivel: 2 },
+  { fn: 'f06SolicitacaoCacambas',      icon: '🗑️', label: 'Solicitação de Caçambas', nivel: 3 },
+  { fn: 'f07LavagemPatio',             icon: '🚿', label: 'Lavagem de Pátio',         nivel: 1 },
+  { fn: 'f08EstoqueMaterial',          icon: '📦', label: 'Estoque DML',              nivel: 3 },
+  { fn: 'f09ControleDescartaveis',     icon: '🧻', label: 'Descartáveis',             nivel: 3 },
+  { fn: 'f10SolicitacaoCompraInsumos', icon: '🛒', label: 'Compra de Insumos',        nivel: 3 },
+  { fn: 'f11VerEscala',                icon: '📆', label: 'Ver Escala',               nivel: 0 },
+  { fn: 'f12DefinirRotinas',           icon: '⚙️', label: 'Definir Rotinas',          nivel: 3 },
+  { fn: 'f13GerenciarEscalas',         icon: '👷', label: 'Gerenciar Escalas',        nivel: 3 },
+];
+
+function _limp_statusBadge(s) {
+  const m = { pendente:'warning', aceita:'info', em_andamento:'info', concluida:'success', cancelada:'muted' };
+  return `<span class="badge badge-${m[s]||'muted'}">${escapeHtml((s||'—').replace(/_/g,' '))}</span>`;
+}
+function _limp_urgBadge(u) {
+  const m = { alta:'danger', media:'warning', baixa:'success' };
+  return `<span class="badge badge-${m[u]||'muted'}">${escapeHtml(u||'—')}</span>`;
+}
+function _fmtDT(v) {
+  if (!v) return '—';
+  try { return new Date(v).toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' }); } catch { return '—'; }
+}
+
+async function loadStats() {
+  try {
+    const d = await API.get('/limpeza/stats');
+    const s = d.data || d;
+
+    document.getElementById('stat-sol-pendentes').textContent  = s.solicitacoesPendentes ?? '—';
+    document.getElementById('stat-checklist-hoje').textContent = s.checklistHoje         ?? '—';
+    document.getElementById('stat-total-rotinas').textContent  = s.totalRotinas          ?? '—';
+    document.getElementById('stat-itens-criticos').textContent = s.itensCriticos         ?? '—';
+    document.getElementById('stat-cacambas-pend').textContent  = s.cacambasPendentes     ?? '—';
+
+    const bar = document.getElementById('limp-alerts');
+    const chips = [];
+    if (s.itensCriticos > 0)
+      chips.push({ type: 'danger',  text: `${s.itensCriticos} item(ns) de estoque abaixo do mínimo` });
+    if (s.cacambasPendentes > 0)
+      chips.push({ type: 'warning', text: `${s.cacambasPendentes} caçamba(s) pendente(s) de coleta` });
+    if (s.solicitacoesPendentes > 0)
+      chips.push({ type: 'warning', text: `${s.solicitacoesPendentes} solicitação(ões) de limpeza pendente(s)` });
+    if (!chips.length)
+      chips.push({ type: 'success', text: 'Nenhum alerta ativo no momento' });
+
+    bar.innerHTML = chips.map(c =>
+      `<span class="limp-alert-chip ${c.type}">${c.type==='danger'?'🚨':c.type==='warning'?'⚠️':c.type==='info'?'ℹ️':'✅'} ${escapeHtml(c.text)}</span>`
+    ).join('');
+  } catch(err) {
+    console.warn('Limpeza stats error:', err);
+  }
+}
+
+function renderFunctions(user) {
+  const grid = document.getElementById('limp-fn-grid');
+  const visible = LIMP_FUNCTIONS.filter(f => user.nivel_acesso >= f.nivel);
+  if (!visible.length) {
+    grid.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🔒</span><span class="empty-state-title">Nenhuma função disponível para seu nível de acesso</span></div>';
+    return;
+  }
+  grid.innerHTML = visible.map(f =>
+    `<button class="limp-fn-btn" data-fn="${escapeHtml(f.fn)}" title="${escapeHtml(f.label)}">
+       <span class="limp-fn-icon">${f.icon}</span>
+       <span>${escapeHtml(f.label)}</span>
+     </button>`
+  ).join('');
+  grid.addEventListener('click', function(e) {
+    const btn = e.target.closest('.limp-fn-btn');
+    if (!btn) return;
+    const fn = btn.getAttribute('data-fn');
+    if (window.FuncoesLimpeza && typeof window.FuncoesLimpeza[fn] === 'function') {
+      window.FuncoesLimpeza[fn]();
+    }
+  });
+}
+
+async function loadSolicitacoesRecentes() {
+  const wrap = document.getElementById('limp-sol-table-wrap');
+  try {
+    const d = await API.get('/limpeza/solicitacoes?status=pendente');
+    const rows = Array.isArray(d) ? d : (d.data || []);
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">✅</span><span class="empty-state-title">Nenhuma solicitação pendente</span></div>';
+      return;
+    }
+    const top = rows.slice(0, 20);
+    wrap.innerHTML = `
+      <div style="overflow-x:auto;">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Local/Setor</th>
+              <th>Tipo de Serviço</th>
+              <th>Urgência</th>
+              <th>Status</th>
+              <th>Solicitante</th>
+              <th>Data</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${top.map(r => `
+            <tr>
+              <td>#${r.id}</td>
+              <td>${escapeHtml(r.local_setor||r.local||'—')}</td>
+              <td>${escapeHtml((r.tipo_servico||r.tipo||'—').replace(/_/g,' '))}</td>
+              <td>${_limp_urgBadge(r.urgencia)}</td>
+              <td>${_limp_statusBadge(r.status)}</td>
+              <td>${escapeHtml(r.solicitante_nome||'—')}</td>
+              <td>${_fmtDT(r.criado_em||r.created_at)}</td>
+              <td><button class="btn btn-sm btn-secondary" onclick="window.FuncoesLimpeza&&window.FuncoesLimpeza.f02GerenciarSolicitacoes()">Gerenciar</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${rows.length > 20 ? `<p style="padding:var(--space-2) var(--space-3);font-size:var(--font-size-xs);color:var(--text-muted);">Exibindo 20 de ${rows.length} solicitações.</p>` : ''}`;
+  } catch(err) {
+    wrap.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">Erro ao carregar solicitações: ${escapeHtml(err.message||'')}</span></div>`;
+  }
+}
+
+async function onReady(user) {
+  await Promise.all([loadStats(), loadSolicitacoesRecentes()]);
+  renderFunctions(user);
+  document.getElementById('limp-refresh-sol').addEventListener('click', loadSolicitacoesRecentes);
+}
+
+initPage({
+  title: 'Limpeza',
+  breadcrumb: ['Limpeza'],
+  requireNivel: 0,
+  activeMenu: 'limpeza',
+  onReady: onReady,
+});
+</script>
+</body>
+</html>

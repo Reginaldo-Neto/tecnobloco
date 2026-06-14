@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Tecnobloco — Gestão Industrial de Ativos e Manutenção" />
+  <title>Login — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: var(--space-4);
+      background: #0b0e18;
+    }
+
+    /* ── Wrapper ── */
+    .login-wrapper {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ── */
+    .login-header { text-align: center; }
+
+    .login-logo {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, #9f67ff 60%, #6366f1 100%);
+      border-radius: 22px;
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      font-size: 30px; font-weight: var(--font-weight-extrabold);
+      color: #fff;
+      margin-bottom: var(--space-4);
+      letter-spacing: -1px;
+      box-shadow: var(--shadow-primary), 0 0 0 0 rgba(124,58,237,.4);
+      animation: logoPulse 2.8s ease-in-out infinite;
+      position: relative;
+    }
+    .login-logo::after {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: 26px;
+      border: 1px solid rgba(124,58,237,.3);
+      animation: ringExpand 2.8s ease-in-out infinite;
+    }
+    @keyframes ringExpand {
+      0%,100% { transform: scale(1); opacity: .6; }
+      50%      { transform: scale(1.1); opacity: 0; }
+    }
+
+    .login-title {
+      font-size: 30px; font-weight: var(--font-weight-extrabold);
+      color: var(--text-primary); letter-spacing: 3px;
+      margin-bottom: var(--space-1);
+    }
+    .login-subtitle { font-size: var(--font-size-sm); color: var(--text-muted); letter-spacing: .4px; }
+
+    /* ── Card ── */
+    .login-card {
+      background: rgba(22,27,39,.82);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 24px 64px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
+      padding: 36px var(--space-6);
+      animation: cardSlideUp .55s cubic-bezier(.34,1.56,.64,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--color-primary), #9f67ff, var(--color-info));
+    }
+
+    .login-form .form-group { margin-bottom: var(--space-4); }
+
+    /* Field with icon */
+    .field-wrap { position: relative; }
+    .field-wrap .f-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 13px; opacity: .4; pointer-events: none; line-height: 1;
+    }
+    .field-wrap .form-control { padding-left: 36px; }
+
+    .pwd-wrap { position: relative; display: flex; align-items: center; }
+    .pwd-wrap .f-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 13px; opacity: .4; pointer-events: none; line-height: 1;
+    }
+    .pwd-wrap .form-control { padding-left: 36px; padding-right: 40px; flex: 1; }
+    .password-toggle {
+      position: absolute; right: 10px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 15px; padding: 4px;
+      display: flex; align-items: center;
+      transition: color var(--transition); line-height: 1;
+    }
+    .password-toggle:hover { color: var(--text-primary); }
+
+    .login-options {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: var(--space-5); flex-wrap: wrap; gap: var(--space-3);
+    }
+
+    #login-error { display: none; margin-bottom: var(--space-4); }
+
+    .login-submit {
+      width: 100%; padding: 12px;
+      font-size: var(--font-size-md); font-weight: var(--font-weight-semibold);
+      border-radius: var(--radius); letter-spacing: .3px;
+    }
+
+    /* Server config */
+    .server-section { margin-top: var(--space-5); }
+    .server-toggle {
+      display: flex; align-items: center; gap: var(--space-2);
+      cursor: pointer; font-size: var(--font-size-xs); color: var(--text-muted);
+      background: none; border: none; padding: 0;
+      font-family: inherit; transition: color var(--transition); user-select: none;
+    }
+    .server-toggle:hover { color: var(--text-secondary); }
+    .server-toggle-icon { font-size: 10px; transition: transform var(--transition); }
+    .server-toggle-icon.open { transform: rotate(90deg); }
+    .server-config {
+      display: none; margin-top: var(--space-3); padding: var(--space-4);
+      background: rgba(255,255,255,.03); border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+    }
+    .server-config.open { display: block; }
+    .server-config label { font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: var(--space-1); }
+
+    .server-status-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: var(--space-2); margin-top: var(--space-4);
+    }
+
+    @media (max-width: 440px) {
+      .login-card { padding: var(--space-5) var(--space-4); }
+      .login-wrapper { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Animated background layers -->
+  <div class="login-bg"    aria-hidden="true"></div>
+  <div class="login-grid"  aria-hidden="true"></div>
+  <div class="orb orb-1"   aria-hidden="true"></div>
+  <div class="orb orb-2"   aria-hidden="true"></div>
+  <div class="orb orb-3"   aria-hidden="true"></div>
+
+  <div class="login-wrapper">
+
+    <!-- Header / Logo -->
+    <div class="login-header">
+      <div class="login-logo" aria-hidden="true">T</div>
+      <h1 class="login-title">Tecnobloco</h1>
+      <p class="login-subtitle">Gestão Industrial — Ativos &amp; Manutenção</p>
+    </div>
+
+    <!-- Login card -->
+    <div class="login-card">
+
+      <!-- Error alert -->
+      <div class="alert alert-danger" id="login-error" role="alert">
+        <span class="alert-icon">⚠</span>
+        <span id="login-error-text">Erro de autenticação.</span>
+      </div>
+
+      <form class="login-form" id="login-form" novalidate autocomplete="on">
+
+        <!-- CPF / Email -->
+        <div class="form-group">
+          <label class="form-label required" for="identifier">CPF ou E-mail</label>
+          <div class="field-wrap">
+            <span class="f-icon">👤</span>
+            <input
+              type="text" id="identifier" name="identifier"
+              class="form-control"
+              placeholder="000.000.000-00 ou email@empresa.com"
+              autocomplete="username" inputmode="text" required
+            />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label required" for="senha">Senha</label>
+          <div class="pwd-wrap">
+            <span class="f-icon">🔒</span>
+            <input
+              type="password" id="senha" name="senha"
+              class="form-control"
+              placeholder="••••••••"
+              autocomplete="current-password" required
+            />
+            <button type="button" class="password-toggle" id="password-toggle" aria-label="Mostrar senha">👁</button>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="login-options">
+          <label class="form-check">
+            <input type="checkbox" id="remember-cpf" />
+            <span class="form-check-label">Lembrar CPF/email</span>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary login-submit" id="submit-btn">
+          Entrar
+        </button>
+
+      </form>
+
+      <!-- Server configuration (collapsible) -->
+      <div class="server-section">
+        <button type="button" class="server-toggle" id="server-toggle-btn">
+          <span class="server-toggle-icon" id="server-toggle-icon">▶</span>
+          Configurar servidor
+        </button>
+        <div class="server-config" id="server-config-panel">
+          <label for="server-ip">Endereço IP do servidor</label>
+          <div class="input-group">
+            <input type="text" id="server-ip" class="form-control" placeholder="192.168.1.100" autocomplete="off" />
+            <button type="button" class="btn btn-secondary" id="save-server-btn"
+              style="border-radius:0 var(--border-radius) var(--border-radius) 0;border-left:0;">Salvar</button>
+          </div>
+          <p class="form-hint mt-2">Deixe vazio para usar a origem padrão (mesmo host).</p>
+        </div>
+      </div>
+
+    </div><!-- /.login-card -->
+
+    <!-- Status row -->
+    <div class="server-status-row">
+      <div class="server-status">
+        <span class="status-dot checking" id="conn-dot"></span>
+        <span id="conn-text" style="font-size:12px;color:var(--text-muted);">Verificando conexão...</span>
+      </div>
+    </div>
+
+    <!-- Security badge -->
+    <div class="security-badge" aria-hidden="true">
+      <span>🔐</span>
+      <span>Conexão criptografada — Tecnobloco ERP v2.0</span>
+    </div>
+
+  </div><!-- /.login-wrapper -->
+
+  <script src="/assets/js/api.js"></script>
+  <script>
+    'use strict';
+
+    // ── Redirect if already logged in ──────────────────────────
+    if (API.isAuthenticated()) {
+      const _u = API.getUser();
+      window.location.href = (_u && _u.dashboard_rota) || '/pages/dashboard.html';
+    }
+
+    // ── Apply saved theme ──────────────────────────────────────
+    if (localStorage.getItem('tb_theme') === 'light') {
+      document.body.classList.add('theme-light');
+    }
+
+    // ── Elements ───────────────────────────────────────────────
+    const form        = document.getElementById('login-form');
+    const identInput  = document.getElementById('identifier');
+    const senhaInput  = document.getElementById('senha');
+    const rememberChk = document.getElementById('remember-cpf');
+    const submitBtn   = document.getElementById('submit-btn');
+    const errorBox    = document.getElementById('login-error');
+    const errorText   = document.getElementById('login-error-text');
+    const pwdToggle   = document.getElementById('password-toggle');
+
+    const serverToggleBtn   = document.getElementById('server-toggle-btn');
+    const serverToggleIcon  = document.getElementById('server-toggle-icon');
+    const serverConfigPanel = document.getElementById('server-config-panel');
+    const serverIpInput     = document.getElementById('server-ip');
+    const saveServerBtn     = document.getElementById('save-server-btn');
+
+    const connDot  = document.getElementById('conn-dot');
+    const connText = document.getElementById('conn-text');
+
+    // ── Dev autofill (?_dev=1) ────────────────────────────────
+    const _devParam = new URLSearchParams(window.location.search).get('_dev');
+    const _isLocal  = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+    if (_devParam === '1' && _isLocal) {
+      identInput.value = '000.000.000-00';
+      senhaInput.value = '1234';
+      window.history.replaceState({}, '', '/');
+    }
+
+    // ── Restore remembered identifier ─────────────────────────
+    if (!(_devParam === '1' && _isLocal)) {
+      const remembered = localStorage.getItem('tb_remember_cpf');
+      if (remembered) {
+        identInput.value    = remembered;
+        rememberChk.checked = true;
+        senhaInput.focus();
+      }
+    }
+
+    // ── Restore saved server IP ────────────────────────────────
+    const savedIp = localStorage.getItem('tb_server');
+    if (savedIp && !(_devParam === '1' && _isLocal)) serverIpInput.value = savedIp;
+
+    // ── Password visibility toggle ─────────────────────────────
+    pwdToggle.addEventListener('click', () => {
+      const isText = senhaInput.type === 'text';
+      senhaInput.type = isText ? 'password' : 'text';
+      pwdToggle.textContent = isText ? '👁' : '🙈';
+      pwdToggle.setAttribute('aria-label', isText ? 'Mostrar senha' : 'Ocultar senha');
+    });
+
+    // ── Server config toggle ───────────────────────────────────
+    serverToggleBtn.addEventListener('click', () => {
+      const isOpen = serverConfigPanel.classList.toggle('open');
+      serverToggleIcon.classList.toggle('open', isOpen);
+    });
+
+    saveServerBtn.addEventListener('click', () => {
+      const val = serverIpInput.value.trim();
+      if (val) {
+        localStorage.setItem('tb_server', val);
+      } else {
+        localStorage.removeItem('tb_server');
+      }
+      checkHealth();
+      const orig = saveServerBtn.textContent;
+      saveServerBtn.textContent = '✔ Salvo';
+      saveServerBtn.disabled = true;
+      setTimeout(() => { saveServerBtn.textContent = orig; saveServerBtn.disabled = false; }, 1800);
+    });
+
+    // ── Error display ──────────────────────────────────────────
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorBox.style.display = 'flex';
+      identInput.classList.add('is-invalid');
+      senhaInput.classList.add('is-invalid');
+    }
+    function clearError() {
+      errorBox.style.display = 'none';
+      identInput.classList.remove('is-invalid');
+      senhaInput.classList.remove('is-invalid');
+    }
+    senhaInput.addEventListener('input', clearError);
+
+    // ── CPF auto-mask ──────────────────────────────────────────
+    identInput.addEventListener('input', function () {
+      clearError();
+      const raw = this.value;
+      if (raw.includes('@')) return;
+      if (/^\d/.test(raw)) {
+        const digits = raw.replace(/\D/g, '').slice(0, 11);
+        let masked = digits;
+        if (digits.length > 9)      masked = digits.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+        else if (digits.length > 6) masked = digits.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+        else if (digits.length > 3) masked = digits.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+        if (this.value !== masked) this.value = masked;
+      }
+    });
+    identInput.addEventListener('paste', function () {
+      setTimeout(() => identInput.dispatchEvent(new Event('input')), 0);
+    });
+
+    // ── Form submit ────────────────────────────────────────────
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const identifier = identInput.value.trim();
+      const senha      = senhaInput.value;
+
+      if (!identifier) { showError('Informe o CPF ou e-mail.'); identInput.focus(); return; }
+      if (!senha)       { showError('Informe a senha.');         senhaInput.focus(); return; }
+
+      submitBtn.classList.add('btn-loading');
+      submitBtn.disabled = true;
+
+      try {
+        const data = await API.login(identifier, senha);
+        if (!data || !data.token) throw new Error('Resposta inválida do servidor.');
+
+        if (rememberChk.checked) {
+          localStorage.setItem('tb_remember_cpf', identifier);
+        } else {
+          localStorage.removeItem('tb_remember_cpf');
+        }
+
+        const rota = (data.usuario && data.usuario.dashboard_rota) || '/pages/dashboard.html';
+        window.location.href = rota;
+
+      } catch (err) {
+        showError(err.message || 'Erro ao autenticar. Tente novamente.');
+        senhaInput.value = '';
+        senhaInput.focus();
+      } finally {
+        submitBtn.classList.remove('btn-loading');
+        submitBtn.disabled = false;
+      }
+    });
+
+    // ── Server health polling ──────────────────────────────────
+    async function checkHealth() {
+      connDot.className = 'status-dot checking';
+      connText.textContent = 'Verificando conexão...';
+      const ok = await API.health();
+      connDot.className = `status-dot ${ok ? 'online' : 'offline'}`;
+      connText.textContent = ok
+        ? `Servidor online — ${API.getBase()}`
+        : `Servidor inacessível — ${API.getBase()}`;
+    }
+    checkHealth();
+    setInterval(checkHealth, 30000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+﻿{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tecnobloco: Dev",
+      "type": "shell",
+      "command": "node scripts/dev.js",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "runOptions": { "runOn": "default" }
+    },
+    {
+      "label": "Tecnobloco: Setup banco de dados",
+      "type": "shell",
+      "command": "cd backend && npm install && node scripts/setup-db.js",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Tecnobloco: Instalar dependências",
+      "type": "shell",
+      "command": "cd backend && npm install",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

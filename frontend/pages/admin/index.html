@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administração — Tecnobloco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .mod-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:var(--space-6);}
+    @media(max-width:900px){.mod-stat-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:500px){.mod-stat-grid{grid-template-columns:1fr;}}
+    .mod-fn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-3);}
+    .mod-fn-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-4) var(--space-3);background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:var(--border-radius);color:var(--text-secondary);font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);cursor:pointer;transition:all var(--transition);text-align:center;}
+    .mod-fn-btn:hover{background:rgba(124,58,237,0.1);border-color:rgba(124,58,237,0.3);color:var(--text-primary);transform:translateY(-1px);}
+    .mod-fn-icon{font-size:22px;}
+    .stat-card{display:block;position:relative;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-4);transition:transform .2s,box-shadow .2s;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sc-a,#7c3aed),var(--sc-b,#a78bfa));}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+    .stat-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);}
+    .stat-card-title{font-size:var(--font-size-sm);color:var(--text-muted);font-weight:600;}
+    .stat-card-icon{font-size:1.5rem;opacity:.8;}
+    .stat-card-value{font-size:2.1rem;font-weight:800;color:var(--text-primary);margin-bottom:4px;line-height:1;}
+    .stat-card-sub{font-size:var(--font-size-xs);color:var(--text-muted);}
+    .stat-card.success{--sc-a:#22c55e;--sc-b:#4ade80;}.stat-card.success .stat-card-value{color:#4ade80;}
+    .stat-card.warning{--sc-a:#f97316;--sc-b:#fb923c;}.stat-card.warning .stat-card-value{color:#fb923c;}
+    .stat-card.danger{--sc-a:#ef4444;--sc-b:#f87171;}.stat-card.danger .stat-card-value{color:#f87171;}
+    .stat-card.info{--sc-a:#3b82f6;--sc-b:#60a5fa;}.stat-card.info .stat-card-value{color:#60a5fa;}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div id="topbar-container"></div>
+  <main class="main-content" id="main-content">
+      <div class="mod-stat-grid">
+        <div class="stat-card"><div class="stat-card-header"><span class="stat-card-title">Total de Usuários</span><span>👥</span></div><div class="stat-card-value" id="stat-total">—</div><div class="stat-card-sub">cadastrados</div></div>
+        <div class="stat-card success"><div class="stat-card-header"><span class="stat-card-title">Usuários Ativos</span><span>✅</span></div><div class="stat-card-value" id="stat-ativos">—</div><div class="stat-card-sub">com acesso</div></div>
+        <div class="stat-card"><div class="stat-card-header"><span class="stat-card-title">Departamentos</span><span>🏢</span></div><div class="stat-card-value" id="stat-depts">—</div><div class="stat-card-sub">ativos</div></div>
+        <div class="stat-card"><div class="stat-card-header"><span class="stat-card-title">Logs Hoje</span><span>📋</span></div><div class="stat-card-value" id="stat-logs">—</div><div class="stat-card-sub">eventos de auditoria</div></div>
+      </div>
+      <div class="content-card" style="margin-bottom:var(--space-5);">
+        <div class="card-header"><h3 class="card-title">Funções do Setor</h3></div>
+        <div class="mod-fn-grid" id="mod-fn-grid"><div class="page-loader"><span class="spinner"></span></div></div>
+      </div>
+      <div class="content-card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 class="card-title">Últimos Eventos de Auditoria</h3>
+          <button class="btn btn-sm btn-secondary" id="mod-refresh">↻ Atualizar</button>
+        </div>
+        <div id="mod-list"><div class="page-loader"><span class="spinner"></span></div></div>
+      </div>
+  </main>
+</div>
+<script src="../../assets/js/api.js"></script>
+<script src="../../assets/js/components.js"></script>
+<script src="../../assets/js/funcoes/_core.js"></script>
+<script src="../../assets/js/funcoes/global_forms.js"></script>
+<script src="../../assets/js/funcoes/admin_forms.js"></script>
+<script src="../../assets/js/funcoes/admin.js"></script>
+<script>
+'use strict';
+const ADM_FUNCTIONS = [
+  { fn: 'f01GerenciarUsuarios',    icon: '👥', label: 'Gerenciar Usuários',    nivel: 6 },
+  { fn: 'f02GerenciarDepartamentos',icon:'🏢', label: 'Departamentos',         nivel: 6 },
+  { fn: 'f03GerenciarCargos',      icon: '🎖️', label: 'Cargos',               nivel: 6 },
+  { fn: 'f04LogAuditoria',         icon: '🔍', label: 'Log de Auditoria',      nivel: 6 },
+  { fn: 'f05BugReports',           icon: '🐛', label: 'Bug Reports',           nivel: 6 },
+];
+
+async function loadStats() {
+  try {
+    const d = await API.get('/admin/stats');
+    const s = d.data || d;
+    document.getElementById('stat-total').textContent = s.totalUsuarios ?? '—';
+    document.getElementById('stat-ativos').textContent = s.usuariosAtivos ?? '—';
+    document.getElementById('stat-depts').textContent = s.totalDepartamentos ?? '—';
+    document.getElementById('stat-logs').textContent = s.logsHoje ?? '—';
+  } catch(e) { console.warn('stats', e); }
+}
+
+async function loadRecentes() {
+  const wrap = document.getElementById('mod-list');
+  try {
+    const d = await API.get('/admin/recentes');
+    const rows = Array.isArray(d) ? d : (d.data || []);
+    if (!rows.length) { wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📭</span><span class="empty-state-title">Nenhum log hoje</span></div>'; return; }
+    wrap.innerHTML = `<div style="overflow-x:auto;"><table class="table table-hover"><thead><tr><th>Usuário</th><th>Evento</th><th>Tabela</th><th>Data</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escapeHtml(r.usuario_nome||'Sistema')}</td><td><span class="badge badge-info">${escapeHtml(r.tipo_evento||'—')}</span></td><td>${escapeHtml(r.tabela_afetada||'—')}</td><td>${r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'—'}</td></tr>`).join('')}</tbody></table></div>`;
+  } catch(e) { wrap.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">${escapeHtml(e.message||'Erro')}</span></div>`; }
+}
+
+function renderFunctions(user) {
+  const grid = document.getElementById('mod-fn-grid');
+  const vis = ADM_FUNCTIONS.filter(f => user.nivel_acesso >= f.nivel);
+  if (!vis.length) { grid.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🔒</span><span class="empty-state-title">Acesso restrito a Diretores e Admin</span></div>'; return; }
+  grid.innerHTML = vis.map(f=>`<button class="mod-fn-btn" data-fn="${escapeHtml(f.fn)}"><span class="mod-fn-icon">${f.icon}</span><span>${escapeHtml(f.label)}</span></button>`).join('');
+  grid.addEventListener('click', e=>{
+    const btn = e.target.closest('.mod-fn-btn'); if (!btn) return;
+    const fn = btn.getAttribute('data-fn');
+    if (window.FuncoesAdmin && typeof window.FuncoesAdmin[fn]==='function') window.FuncoesAdmin[fn]();
+  });
+}
+
+async function onReady(user) {
+  await Promise.all([loadStats(), loadRecentes()]);
+  renderFunctions(user);
+  document.getElementById('mod-refresh').addEventListener('click', loadRecentes);
+}
+
+initPage({ title:'Administração', breadcrumb:['Administração'], requireNivel:6, activeMenu:'admin', onReady });
+</script>
+</body>
+</html>
