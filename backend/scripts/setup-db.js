@@ -105,7 +105,84 @@ async function run() {
       console.log('[SETUP] Departamentos já existem, pulando.');
     }
 
-    // 6. Seeds de equipamentos (só se tabela vazia)
+    // 6. Seeds de cargos padrão (só se tabela vazia)
+    const [[{ cargoCnt }]] = await conn.query('SELECT COUNT(*) AS cargoCnt FROM cargos');
+    if (cargoCnt === 0) {
+      console.log('[SETUP] Inserindo cargos padrão...');
+      await conn.query(`
+        INSERT INTO cargos (nome, nivel_acesso, departamento_id)
+        SELECT t.nome, t.nivel, d.id FROM (
+          -- Produção
+          SELECT 'Auxiliar de Produção'              AS nome, 1 AS nivel, 'Produção'              AS dept UNION ALL
+          SELECT 'Operador de Betoneira',                     2,          'Produção'                       UNION ALL
+          SELECT 'Operador de Prensa',                        2,          'Produção'                       UNION ALL
+          SELECT 'Operador de Máquinas',                      2,          'Produção'                       UNION ALL
+          SELECT 'Encarregado de Produção',                   4,          'Produção'                       UNION ALL
+          SELECT 'Supervisor de Produção',                    4,          'Produção'                       UNION ALL
+          SELECT 'Gerente de Produção',                       5,          'Produção'                       UNION ALL
+          -- Manutenção
+          SELECT 'Auxiliar de Manutenção',                    1,          'Manutenção'                     UNION ALL
+          SELECT 'Mecânico Industrial',                       2,          'Manutenção'                     UNION ALL
+          SELECT 'Eletricista Industrial',                    2,          'Manutenção'                     UNION ALL
+          SELECT 'Técnico de Manutenção',                     3,          'Manutenção'                     UNION ALL
+          SELECT 'Supervisor de Manutenção',                  4,          'Manutenção'                     UNION ALL
+          SELECT 'Gerente de Manutenção',                     5,          'Manutenção'                     UNION ALL
+          -- Qualidade
+          SELECT 'Auxiliar de Laboratório',                   1,          'Qualidade'                      UNION ALL
+          SELECT 'Técnico de Laboratório',                    2,          'Qualidade'                      UNION ALL
+          SELECT 'Analista de Qualidade',                     3,          'Qualidade'                      UNION ALL
+          SELECT 'Supervisor de Qualidade',                   4,          'Qualidade'                      UNION ALL
+          -- Estoque
+          SELECT 'Auxiliar de Almoxarifado',                  1,          'Estoque'                        UNION ALL
+          SELECT 'Almoxarife',                                2,          'Estoque'                        UNION ALL
+          SELECT 'Supervisor de Estoque',                     3,          'Estoque'                        UNION ALL
+          -- Expedição
+          SELECT 'Auxiliar de Expedição',                     1,          'Expedição'                      UNION ALL
+          SELECT 'Operador de Empilhadeira',                  2,          'Expedição'                      UNION ALL
+          SELECT 'Encarregado de Expedição',                  3,          'Expedição'                      UNION ALL
+          -- Frotas
+          SELECT 'Motorista de Caminhão',                     2,          'Frotas'                         UNION ALL
+          SELECT 'Encarregado de Frotas',                     3,          'Frotas'                         UNION ALL
+          -- Vendas
+          SELECT 'Assistente Comercial',                      2,          'Vendas'                         UNION ALL
+          SELECT 'Vendedor Externo',                          2,          'Vendas'                         UNION ALL
+          SELECT 'Analista Comercial',                        3,          'Vendas'                         UNION ALL
+          SELECT 'Gerente Comercial',                         5,          'Vendas'                         UNION ALL
+          -- Compras
+          SELECT 'Auxiliar de Compras',                       1,          'Compras'                        UNION ALL
+          SELECT 'Analista de Compras',                       3,          'Compras'                        UNION ALL
+          SELECT 'Gerente de Compras',                        5,          'Compras'                        UNION ALL
+          -- Financeiro
+          SELECT 'Auxiliar Financeiro',                       1,          'Financeiro'                     UNION ALL
+          SELECT 'Assistente Financeiro',                     2,          'Financeiro'                     UNION ALL
+          SELECT 'Analista Financeiro',                       3,          'Financeiro'                     UNION ALL
+          SELECT 'Contador',                                  3,          'Financeiro'                     UNION ALL
+          SELECT 'Gerente Financeiro',                        5,          'Financeiro'                     UNION ALL
+          -- RH
+          SELECT 'Assistente de RH',                          2,          'RH'                             UNION ALL
+          SELECT 'Analista de RH',                            3,          'RH'                             UNION ALL
+          SELECT 'Gerente de RH',                             5,          'RH'                             UNION ALL
+          -- Administração
+          SELECT 'Recepcionista',                             1,          'Administração'                  UNION ALL
+          SELECT 'Assistente Administrativo',                 2,          'Administração'                  UNION ALL
+          SELECT 'Analista Administrativo',                   3,          'Administração'                  UNION ALL
+          -- TI
+          SELECT 'Técnico de TI',                             2,          'TI'                             UNION ALL
+          SELECT 'Analista de TI',                            3,          'TI'                             UNION ALL
+          -- Segurança do Trabalho
+          SELECT 'Técnico de Segurança do Trabalho',          3,          'Segurança do Trabalho'          UNION ALL
+          SELECT 'Engenheiro de Segurança do Trabalho',       4,          'Segurança do Trabalho'          UNION ALL
+          -- Diretoria
+          SELECT 'Diretor de Operações',                      6,          'Diretoria'                      UNION ALL
+          SELECT 'Diretor Geral',                             6,          'Diretoria'
+        ) t LEFT JOIN departamentos d ON d.nome = t.dept
+      `);
+      console.log('[SETUP] 49 cargos padrão inseridos.');
+    } else {
+      console.log('[SETUP] Cargos já existem, pulando.');
+    }
+
+    // 7. Seeds de equipamentos (só se tabela vazia)
     const [[{ equipCnt }]] = await conn.query('SELECT COUNT(*) AS equipCnt FROM equipamentos');
     if (equipCnt === 0) {
       console.log('[SETUP] Inserindo equipamentos tagueados...');

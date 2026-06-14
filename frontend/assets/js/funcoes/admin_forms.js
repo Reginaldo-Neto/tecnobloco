@@ -36,13 +36,13 @@ const AdminForms = {
       el.innerHTML = `<form id="form-usuario">
         <div class="row g-2">
           <div class="col-6"><label class="form-label">Nome Completo *</label><input name="nome" class="form-control" required></div>
-          <div class="col-6"><label class="form-label">CPF</label><input name="cpf" class="form-control" placeholder="000.000.000-00"></div>
+          <div class="col-6"><label class="form-label">CPF</label><input name="cpf" id="novo-usr-cpf" class="form-control" placeholder="000.000.000-00" maxlength="14" inputmode="numeric"></div>
         </div>
         <div class="mb-3 mt-2"><label class="form-label">E-mail *</label><input name="email" type="email" class="form-control" required></div>
         <div class="mb-3"><label class="form-label">Senha Inicial *</label><input name="senha" type="password" class="form-control" required minlength="6"></div>
         <div class="row g-2">
           <div class="col-6"><label class="form-label">Departamento</label><select name="departamento_id" class="form-select"><option value="">Selecione...</option>${dOpts}</select></div>
-          <div class="col-6"><label class="form-label">Cargo</label><select name="cargo_id" class="form-select"><option value="">Selecione...</option>${cOpts}</select></div>
+          <div class="col-6"><label class="form-label">Cargo <small style="color:var(--text-muted);font-weight:400;">(título do emprego)</small></label><select name="cargo_id" class="form-select"><option value="">Selecione...</option>${cOpts}</select></div>
         </div>
         <div class="mb-3 mt-2"><label class="form-label">Nível de Acesso *</label>
           <select name="nivel_acesso" class="form-select" required>
@@ -58,6 +58,16 @@ const AdminForms = {
         </div>
       </form>`;
       setFooter(`<button class="btn btn-success" id="btn-salvar-usuario">Criar Usuário</button>`);
+      // CPF mask
+      const cpfEl = document.getElementById('novo-usr-cpf');
+      if (cpfEl) cpfEl.addEventListener('input', function() {
+        const d = this.value.replace(/\D/g,'').slice(0,11);
+        let m = d;
+        if (d.length > 9)      m = d.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
+        else if (d.length > 6) m = d.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+        else if (d.length > 3) m = d.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+        if (this.value !== m) this.value = m;
+      });
       document.getElementById('btn-salvar-usuario').onclick = async () => {
         const f = document.getElementById('form-usuario');
         if (!f.checkValidity()) { f.reportValidity(); return; }

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tecnobloco ERP — Apresentação Executiva</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11pt;
+      color: #1e293b;
+      background: white;
+      line-height: 1.6;
+    }
+
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page-break { page-break-after: always; break-after: page; }
+      .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+    }
+
+    /* ── CAPA ── */
+    .cover {
+      width: 100%;
+      height: 297mm;
+      background: linear-gradient(150deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
+      top: -100px; right: -100px;
+      border-radius: 50%;
+    }
+    .cover::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+      border-radius: 50%;
+    }
+    .cover-inner { position: relative; z-index: 1; }
+    .cover-logo {
+      width: 90px; height: 90px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(167,139,250,0.5);
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px;
+      margin: 0 auto 32px;
+    }
+    .cover h1 {
+      font-size: 42pt; font-weight: 900; letter-spacing: -2px;
+      color: white; margin-bottom: 6px;
+    }
+    .cover-sub {
+      font-size: 13pt; color: rgba(255,255,255,0.55);
+      letter-spacing: 4px; text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+    .cover-divider {
+      width: 60px; height: 3px;
+      background: linear-gradient(90deg, #818cf8, #c4b5fd);
+      border-radius: 2px; margin: 0 auto 40px;
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(124,58,237,0.35);
+      border: 1px solid rgba(167,139,250,0.4);
+      border-radius: 30px; padding: 7px 22px;
+      font-size: 10pt; color: #c4b5fd;
+      margin-bottom: 20px; letter-spacing: 1px;
+    }
+    .cover-title-doc {
+      font-size: 17pt; font-weight: 600;
+      color: rgba(255,255,255,0.9); margin-bottom: 14px;
+    }
+    .cover-desc {
+      font-size: 11pt; color: rgba(255,255,255,0.5);
+      max-width: 480px; margin: 0 auto; line-height: 1.7;
+    }
+    .cover-footer {
+      position: absolute; bottom: 40px; left: 0; right: 0;
+      font-size: 9pt; color: rgba(255,255,255,0.3);
+      text-align: center; z-index: 1;
+    }
+
+    /* ── PÁGINAS DE CONTEÚDO ── */
+    .content-page {
+      width: 100%;
+      min-height: 297mm;
+      padding: 50px 60px 50px;
+      position: relative;
+    }
+
+    /* ── CABEÇALHO INTERNO ── */
+    .page-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 16px; margin-bottom: 32px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .page-header-logo {
+      font-size: 10pt; font-weight: 700; color: #312e81;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .page-header-right { font-size: 9pt; color: #94a3b8; }
+
+    /* ── SEÇÃO ── */
+    .section { margin-bottom: 36px; }
+    .section-number {
+      font-size: 8.5pt; font-weight: 700; color: #7c3aed;
+      text-transform: uppercase; letter-spacing: 3px; margin-bottom: 6px;
+    }
+    h2 {
+      font-size: 22pt; font-weight: 800; color: #1e1b4b;
+      margin-bottom: 8px; line-height: 1.2;
+    }
+    .section-lead {
+      font-size: 11.5pt; color: #475569; margin-bottom: 22px; line-height: 1.7;
+    }
+    h3 {
+      font-size: 12pt; font-weight: 700; color: #312e81;
+      margin-bottom: 10px; margin-top: 20px;
+    }
+    p { color: #475569; margin-bottom: 12px; line-height: 1.7; }
+
+    /* ── CARDS ── */
+    .card-grid   { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 18px; }
+    .card-grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-top: 18px; }
+    .card {
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 18px;
+    }
+    .card-accent { background: #f5f3ff; border-color: #ddd6fe; }
+    .card-icon { font-size: 22px; display: block; margin-bottom: 9px; }
+    .card h4 { font-size: 10.5pt; font-weight: 700; color: #1e1b4b; margin-bottom: 5px; }
+    .card p { font-size: 9.5pt; color: #64748b; margin: 0; }
+
+    /* ── HIGHLIGHT ── */
+    .highlight {
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      border-left: 4px solid #7c3aed;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px; margin: 18px 0;
+    }
+    .highlight p { margin: 0; color: #3730a3; font-weight: 500; font-size: 10.5pt; }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 10pt; }
+    thead tr { background: #1e1b4b; color: white; }
+    thead th { padding: 10px 14px; text-align: left; font-size: 9.5pt; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody td { padding: 8px 14px; border-bottom: 1px solid #e2e8f0; color: #374151; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-block; padding: 2px 10px;
+      border-radius: 12px; font-size: 8.5pt; font-weight: 600;
+    }
+    .b-purple { background: #ede9fe; color: #5b21b6; }
+    .b-blue   { background: #dbeafe; color: #1d4ed8; }
+    .b-green  { background: #dcfce7; color: #166534; }
+    .b-orange { background: #ffedd5; color: #9a3412; }
+    .b-gray   { background: #f1f5f9; color: #475569; }
+
+    /* ── NÍVEIS ── */
+    .levels { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+    .level-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 12px; background: #f8fafc;
+      border-radius: 8px; border: 1px solid #e2e8f0;
+    }
+    .level-num {
+      width: 28px; height: 28px; background: #312e81; color: white;
+      border-radius: 6px; display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: 11pt; flex-shrink: 0;
+    }
+    .level-name { font-weight: 700; color: #1e1b4b; font-size: 10pt; min-width: 160px; }
+    .level-desc { font-size: 9.5pt; color: #64748b; }
+
+    /* ── DEPARTAMENTOS ── */
+    .dept-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 9px; margin-top: 14px; }
+    .dept-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 13px; background: #f8fafc;
+      border: 1px solid #e2e8f0; border-radius: 8px;
+    }
+    .dept-icon { font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+    .dept-name { font-weight: 700; color: #1e1b4b; font-size: 10pt; line-height: 1.2; }
+    .dept-desc { font-size: 8.5pt; color: #64748b; margin-top: 2px; }
+
+    /* ── RODAPÉ ── */
+    .page-footer {
+      position: absolute; bottom: 28px; left: 60px; right: 60px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 8.5pt; color: #94a3b8;
+      border-top: 1px solid #e2e8f0; padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     CAPA
+══════════════════════════════════════════ -->
+<div class="cover page-break">
+  <div class="cover-inner">
+    <div class="cover-logo">🏭</div>
+    <h1>Tecnobloco</h1>
+    <div class="cover-sub">Indústria de Pré-Moldados</div>
+    <div class="cover-divider"></div>
+    <div class="cover-badge">ERP — Versão 2.0 &nbsp;·&nbsp; 2026</div>
+    <div class="cover-title-doc">Sistema de Gestão Industrial</div>
+    <div class="cover-title-doc" style="font-weight:400; font-size:14pt; color:rgba(255,255,255,0.65); margin-top:4px;">Apresentação Executiva para Stakeholders</div>
+    <p class="cover-desc" style="margin-top:24px;">
+      Documento de apresentação sobre as funcionalidades, benefícios e
+      estrutura organizacional do sistema de gestão de manutenção e ativos industriais.
+    </p>
+  </div>
+  <div class="cover-footer">Documento Confidencial &nbsp;·&nbsp; Tecnobloco Indústria de Pré-Moldados &nbsp;·&nbsp; Junho de 2026</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 2 — O QUE É O SISTEMA
+══════════════════════════════════════════ -->
+<div class="content-page page-break">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">01 — Visão Geral</div>
+    <h2>O que é o Tecnobloco ERP?</h2>
+    <p class="section-lead">
+      O Tecnobloco ERP é um sistema de gestão industrial desenvolvido sob medida para
+      a realidade da nossa operação — controle total sobre equipamentos, ordens de serviço
+      e manutenção, acessível de qualquer dispositivo com acesso à internet.
+    </p>
+
+    <div class="highlight">
+      <p>
+        💻 &nbsp;O sistema funciona 100% na nuvem, sem necessidade de instalação.
+        Basta um navegador — computador, tablet ou celular — para acessar todas as funcionalidades.
+      </p>
+    </div>
+
+    <h3>Por que um sistema de gestão de manutenção?</h3>
+    <p>
+      Em indústrias de pré-moldados, paradas não planejadas de equipamentos representam perda
+      direta de produção, atrasos em entregas e custos elevados de reparo emergencial.
+      O Tecnobloco ERP transforma a manutenção reativa em manutenção organizada, rastreável e preventiva.
+    </p>
+    <p>
+      Com o sistema, toda a equipe trabalha com as mesmas informações em tempo real —
+      do técnico em campo ao gerente no escritório — eliminando planilhas, cadernos de anotação
+      e comunicações informais.
+    </p>
+
+    <div class="card-grid avoid-break" style="margin-top:22px;">
+      <div class="card card-accent">
+        <span class="card-icon">📉</span>
+        <h4>Menos Paradas</h4>
+        <p>Manutenção preventiva programada reduz falhas inesperadas e paradas na linha de produção.</p>
+      </div>
+      <div class="card card-accent">
+        <span class="card-icon">📋</span>
+        <h4>Rastreabilidade Total</h4>
+        <p>Histórico completo de cada equipamento — serviços, peças e técnicos registrados.</p>
+      </div>
+      <div class="card card-accent">
+        <span class="card-icon">👥</span>
+        <h4>Equipe Integrada</h4>
+        <p>Cada técnico sabe o que fazer e em qual máquina, sem depender de ordens verbais.</p>
+      </div>
+    </div>
+
+    <div class="card-grid avoid-break" style="margin-top:14px;">
+      <div class="card card-accent">
+        <span class="card-icon">💰</span>
+        <h4>Controle de Custos</h4>
+        <p>Custo total de manutenção por equipamento: mão de obra, peças e tempo de reparo.</p>
+      </div>
+      <div class="card card-accent">
+        <span class="card-icon">📊</span>
+        <h4>Indicadores em Tempo Real</h4>
+        <p>Dashboard com OS abertas, equipamentos críticos e performance da equipe.</p>
+      </div>
+      <div class="card card-accent">
+        <span class="card-icon">🔒</span>
+        <h4>Segurança e Auditoria</h4>
+        <p>Todas as ações ficam registradas: quem fez o quê, quando e em qual equipamento.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>01 — Visão Geral</span>
+    <span>2</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 3 — MÓDULOS DO SISTEMA
+══════════════════════════════════════════ -->
+<div class="content-page page-break">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">02 — Funcionalidades</div>
+    <h2>Módulos do Sistema</h2>
+    <p class="section-lead">
+      O sistema é dividido em módulos independentes, cada um com função específica na operação.
+    </p>
+
+    <div class="card-grid-2">
+      <div class="card avoid-break">
+        <span class="card-icon">📊</span>
+        <h4>Dashboard Gerencial</h4>
+        <p>
+          Visão consolidada em tempo real: OS abertas, equipamentos com manutenção vencida,
+          alertas pendentes e indicadores de performance da equipe de manutenção.
+        </p>
+      </div>
+      <div class="card avoid-break">
+        <span class="card-icon">🔧</span>
+        <h4>Ordens de Serviço</h4>
+        <p>
+          Abertura, acompanhamento e encerramento de ordens de serviço. Cada OS registra
+          o tipo de manutenção, prioridade, técnico responsável, tempo de execução e custo.
+        </p>
+      </div>
+      <div class="card avoid-break">
+        <span class="card-icon">⚙️</span>
+        <h4>Cadastro de Máquinas</h4>
+        <p>
+          Prontuário digital de cada equipamento com TAG, localização, manual técnico
+          em PDF, histórico completo de manutenções e indicadores de disponibilidade.
+        </p>
+      </div>
+      <div class="card avoid-break">
+        <span class="card-icon">🗓️</span>
+        <h4>Manutenção Preventiva</h4>
+        <p>
+          Planos de manutenção preventiva com periodicidade configurável. O sistema
+          alerta automaticamente quando uma manutenção está próxima do vencimento.
+        </p>
+      </div>
+      <div class="card avoid-break">
+        <span class="card-icon">👤</span>
+        <h4>Gestão de Usuários</h4>
+        <p>
+          Controle de acesso por nível hierárquico. Cada colaborador acessa apenas
+          o que seu cargo permite, com registro de todas as ações realizadas.
+        </p>
+      </div>
+      <div class="card avoid-break">
+        <span class="card-icon">📜</span>
+        <h4>Auditoria Completa</h4>
+        <p>
+          Log detalhado de todas as operações: criação, edição e encerramento de OS,
+          alterações de cadastro e ações administrativas. Filtros por data, usuário e tipo.
+        </p>
+      </div>
+    </div>
+
+    <div class="highlight avoid-break" style="margin-top:24px;">
+      <p>
+        🏷️ &nbsp;O sistema já possui <strong>12 equipamentos pré-cadastrados com TAGs definidas</strong>,
+        prontos para uso imediato. Novos equipamentos podem ser adicionados a qualquer momento pelo supervisor.
+      </p>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>02 — Funcionalidades</span>
+    <span>3</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 4 — ORDENS DE SERVIÇO
+══════════════════════════════════════════ -->
+<div class="content-page page-break">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">03 — Ordens de Serviço</div>
+    <h2>Ciclo de Vida de uma OS</h2>
+    <p class="section-lead">
+      Uma Ordem de Serviço percorre um fluxo estruturado desde a abertura até o encerramento,
+      garantindo rastreabilidade em cada etapa e responsabilização clara.
+    </p>
+
+    <h3>Tipos de Manutenção</h3>
+    <div class="card-grid avoid-break">
+      <div class="card">
+        <span class="card-icon">🔴</span>
+        <h4>Corretiva</h4>
+        <p>Reparo após falha ou quebra inesperada do equipamento.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔵</span>
+        <h4>Preventiva</h4>
+        <p>Intervenção programada para evitar que a falha aconteça.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">🟠</span>
+        <h4>Emergencial</h4>
+        <p>Intervenção imediata com prioridade máxima na fila de execução.</p>
+      </div>
+    </div>
+
+    <h3>Prioridades disponíveis</h3>
+    <div class="card-grid avoid-break" style="margin-top:10px;">
+      <div class="card" style="border-left: 3px solid #4ade80;">
+        <h4 style="color:#166534;">🟢 Baixa</h4>
+        <p>Pode aguardar próxima janela de manutenção.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid #fbbf24;">
+        <h4 style="color:#92400e;">🟡 Média</h4>
+        <p>Atender dentro do turno ou próximo dia útil.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid #fb923c;">
+        <h4 style="color:#9a3412;">🟠 Alta</h4>
+        <p>Atender o mais rápido possível, sem parar produção.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:22px;">O que fica registrado em cada OS?</h3>
+    <table class="avoid-break">
+      <thead>
+        <tr><th>Campo</th><th>Descrição</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Código</strong></td><td>Identificação automática e única (ex: OS-2026-0042)</td></tr>
+        <tr><td><strong>Equipamento / TAG</strong></td><td>Máquina vinculada com identificação por TAG</td></tr>
+        <tr><td><strong>Tipo e Prioridade</strong></td><td>Classificação e urgência da intervenção</td></tr>
+        <tr><td><strong>Descrição do Problema</strong></td><td>O que ocorreu ou precisa ser feito</td></tr>
+        <tr><td><strong>Causa Raiz</strong></td><td>Por que o problema aconteceu (análise técnica)</td></tr>
+        <tr><td><strong>Motivo da Manutenção</strong></td><td>Desgaste, quebra inesperada, inspeção programada etc.</td></tr>
+        <tr><td><strong>Solicitante e Técnico</strong></td><td>Quem abriu e quem executou o serviço</td></tr>
+        <tr><td><strong>Previsão e Conclusão</strong></td><td>Datas de prazo e de encerramento efetivo</td></tr>
+        <tr><td><strong>Custo Total</strong></td><td>Soma de mão de obra e peças utilizadas</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>03 — Ordens de Serviço</span>
+    <span>4</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 5 — CONTROLE DE ACESSO
+══════════════════════════════════════════ -->
+<div class="content-page page-break">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">04 — Segurança e Controle de Acesso</div>
+    <h2>Níveis de Acesso Hierárquicos</h2>
+    <p class="section-lead">
+      O sistema possui 8 níveis de acesso. Cada usuário vê e opera apenas o que seu
+      nível permite, garantindo segurança, conformidade e responsabilização clara por setor.
+    </p>
+
+    <div class="levels">
+      <div class="level-row">
+        <div class="level-num">0</div>
+        <div class="level-name">Menor Aprendiz</div>
+        <div class="level-desc">Apenas visualização básica — sem permissão de criar, editar ou aprovar</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">1</div>
+        <div class="level-name">Auxiliar / Operador</div>
+        <div class="level-desc">Consulta de OS e prontuário de equipamentos, sem poder alterar dados</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">2</div>
+        <div class="level-name">Técnico</div>
+        <div class="level-desc">Atualização de status de OS, registro de apontamentos e upload de manuais</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">3</div>
+        <div class="level-name">Encarregado</div>
+        <div class="level-desc">Abertura de OS, cadastro de equipamentos e criação de planos preventivos</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">4</div>
+        <div class="level-name">Supervisor</div>
+        <div class="level-desc">Gerenciamento completo do setor, aprovações e acompanhamento de indicadores</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">5</div>
+        <div class="level-name">Gerente</div>
+        <div class="level-desc">Acesso completo ao módulo operacional e relatórios gerenciais</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">6</div>
+        <div class="level-name">Diretor</div>
+        <div class="level-desc">Acesso a todos os módulos, gestão de usuários e departamentos</div>
+      </div>
+      <div class="level-row">
+        <div class="level-num">7</div>
+        <div class="level-name">Administrador</div>
+        <div class="level-desc">Controle total do sistema, configurações globais e log de auditoria completo</div>
+      </div>
+    </div>
+
+    <div class="highlight avoid-break" style="margin-top:24px;">
+      <p>
+        🔐 &nbsp;Toda sessão é protegida por token de autenticação (JWT) com expiração automática
+        de 8 horas. O sistema registra login, logout e todas as operações realizadas por cada usuário.
+      </p>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>04 — Segurança e Acesso</span>
+    <span>5</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 6 — DEPARTAMENTOS
+══════════════════════════════════════════ -->
+<div class="content-page page-break">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">05 — Estrutura Organizacional</div>
+    <h2>Departamentos Cadastrados</h2>
+    <p class="section-lead">
+      O sistema foi configurado com 14 departamentos alinhados à estrutura real da operação Tecnobloco,
+      cobrindo toda a cadeia: da produção à diretoria.
+    </p>
+
+    <div class="dept-grid">
+      <div class="dept-item">
+        <span class="dept-icon">🏢</span>
+        <div><div class="dept-name">Diretoria</div><div class="dept-desc">Alta gestão e decisões estratégicas</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">📋</span>
+        <div><div class="dept-name">Administração</div><div class="dept-desc">Secretaria, recepção e apoio geral</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">💰</span>
+        <div><div class="dept-name">Financeiro</div><div class="dept-desc">Contabilidade, tesouraria e contas</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">👥</span>
+        <div><div class="dept-name">RH</div><div class="dept-desc">Pessoal, folha de pagamento e recrutamento</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">🛒</span>
+        <div><div class="dept-name">Compras</div><div class="dept-desc">Suprimentos, fornecedores e contratos</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">💻</span>
+        <div><div class="dept-name">TI</div><div class="dept-desc">Tecnologia da Informação e suporte</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">📈</span>
+        <div><div class="dept-name">Vendas</div><div class="dept-desc">Comercial, orçamentos e atendimento</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">🏗️</span>
+        <div><div class="dept-name">Produção</div><div class="dept-desc">Linha de blocos, tubos e concreto pré-moldado</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">🔧</span>
+        <div><div class="dept-name">Manutenção</div><div class="dept-desc">OS, preventiva, preditiva e corretiva</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">🔬</span>
+        <div><div class="dept-name">Qualidade</div><div class="dept-desc">Laboratório, controle de traço e ensaios</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">📦</span>
+        <div><div class="dept-name">Estoque</div><div class="dept-desc">Almoxarifado, insumos e matéria-prima</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">🚚</span>
+        <div><div class="dept-name">Expedição</div><div class="dept-desc">Carregamento, despacho e entrega</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">🚛</span>
+        <div><div class="dept-name">Frotas</div><div class="dept-desc">Caminhões, veículos e logística de entrega</div></div>
+      </div>
+      <div class="dept-item">
+        <span class="dept-icon">⛑️</span>
+        <div><div class="dept-name">Segurança do Trabalho</div><div class="dept-desc">EPI, NRs, CIPA e segurança das instalações</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>05 — Estrutura Organizacional</span>
+    <span>6</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 7 — CARGOS
+══════════════════════════════════════════ -->
+<div class="content-page page-break">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">06 — Cargos por Setor</div>
+    <h2>Cargos Cadastrados no Sistema</h2>
+    <p class="section-lead">
+      49 cargos pré-configurados, organizados por setor, com nível de acesso já definido
+      conforme a hierarquia da empresa. Novos cargos podem ser adicionados pelo administrador.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Cargo</th><th>Setor</th><th>Nível de Acesso</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Auxiliar de Produção</td><td>Produção</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Operador de Betoneira</td><td>Produção</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Operador de Prensa</td><td>Produção</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Operador de Máquinas</td><td>Produção</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Encarregado de Produção</td><td>Produção</td><td><span class="badge b-blue">4 — Supervisor</span></td></tr>
+        <tr><td>Supervisor de Produção</td><td>Produção</td><td><span class="badge b-blue">4 — Supervisor</span></td></tr>
+        <tr><td>Gerente de Produção</td><td>Produção</td><td><span class="badge b-purple">5 — Gerente</span></td></tr>
+        <tr><td>Auxiliar de Manutenção</td><td>Manutenção</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Mecânico Industrial</td><td>Manutenção</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Eletricista Industrial</td><td>Manutenção</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Técnico de Manutenção</td><td>Manutenção</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Supervisor de Manutenção</td><td>Manutenção</td><td><span class="badge b-blue">4 — Supervisor</span></td></tr>
+        <tr><td>Gerente de Manutenção</td><td>Manutenção</td><td><span class="badge b-purple">5 — Gerente</span></td></tr>
+        <tr><td>Auxiliar de Laboratório</td><td>Qualidade</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Técnico de Laboratório</td><td>Qualidade</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Analista de Qualidade</td><td>Qualidade</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Supervisor de Qualidade</td><td>Qualidade</td><td><span class="badge b-blue">4 — Supervisor</span></td></tr>
+        <tr><td>Auxiliar de Almoxarifado</td><td>Estoque</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Almoxarife</td><td>Estoque</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Supervisor de Estoque</td><td>Estoque</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Auxiliar de Expedição</td><td>Expedição</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Operador de Empilhadeira</td><td>Expedição</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Encarregado de Expedição</td><td>Expedição</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Motorista de Caminhão</td><td>Frotas</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Encarregado de Frotas</td><td>Frotas</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Assistente Comercial</td><td>Vendas</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Vendedor Externo</td><td>Vendas</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Analista Comercial</td><td>Vendas</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Gerente Comercial</td><td>Vendas</td><td><span class="badge b-purple">5 — Gerente</span></td></tr>
+        <tr><td>Auxiliar de Compras</td><td>Compras</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Analista de Compras</td><td>Compras</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Gerente de Compras</td><td>Compras</td><td><span class="badge b-purple">5 — Gerente</span></td></tr>
+        <tr><td>Auxiliar Financeiro</td><td>Financeiro</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Assistente Financeiro</td><td>Financeiro</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Analista Financeiro</td><td>Financeiro</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Contador</td><td>Financeiro</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Gerente Financeiro</td><td>Financeiro</td><td><span class="badge b-purple">5 — Gerente</span></td></tr>
+        <tr><td>Assistente de RH</td><td>RH</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Analista de RH</td><td>RH</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Gerente de RH</td><td>RH</td><td><span class="badge b-purple">5 — Gerente</span></td></tr>
+        <tr><td>Recepcionista</td><td>Administração</td><td><span class="badge b-gray">1 — Auxiliar</span></td></tr>
+        <tr><td>Assistente Administrativo</td><td>Administração</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Analista Administrativo</td><td>Administração</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Técnico de TI</td><td>TI</td><td><span class="badge b-gray">2 — Técnico</span></td></tr>
+        <tr><td>Analista de TI</td><td>TI</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Técnico de Segurança do Trabalho</td><td>Segurança do Trabalho</td><td><span class="badge b-green">3 — Encarregado</span></td></tr>
+        <tr><td>Engenheiro de Segurança do Trabalho</td><td>Segurança do Trabalho</td><td><span class="badge b-blue">4 — Supervisor</span></td></tr>
+        <tr><td>Diretor de Operações</td><td>Diretoria</td><td><span class="badge b-orange">6 — Diretor</span></td></tr>
+        <tr><td>Diretor Geral</td><td>Diretoria</td><td><span class="badge b-orange">6 — Diretor</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>06 — Cargos por Setor</span>
+    <span>7</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PÁG 8 — PRÓXIMOS PASSOS
+══════════════════════════════════════════ -->
+<div class="content-page">
+  <div class="page-header">
+    <div class="page-header-logo">🏭 Tecnobloco ERP</div>
+    <div class="page-header-right">Apresentação Executiva · Junho 2026</div>
+  </div>
+
+  <div class="section">
+    <div class="section-number">07 — Implantação</div>
+    <h2>Roteiro de Implantação</h2>
+    <p class="section-lead">
+      O sistema está pronto para uso imediato. O roteiro abaixo garante uma adoção
+      gradual e bem-sucedida pela equipe.
+    </p>
+
+    <table class="avoid-break">
+      <thead>
+        <tr><th style="width:44px;">#</th><th>Etapa</th><th>Descrição</th><th>Responsável</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge b-purple">01</span></td>
+          <td><strong>Cadastro de Usuários</strong></td>
+          <td>Criação das contas para cada colaborador com cargo e nível de acesso</td>
+          <td>TI / Adm.</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-purple">02</span></td>
+          <td><strong>Revisão dos Equipamentos</strong></td>
+          <td>Conferência dos equipamentos pré-cadastrados e adição dos demais com suas TAGs</td>
+          <td>Manutenção</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-purple">03</span></td>
+          <td><strong>Upload de Manuais</strong></td>
+          <td>Digitalização e upload dos manuais técnicos no prontuário de cada máquina</td>
+          <td>Manutenção</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-purple">04</span></td>
+          <td><strong>Plano Preventivo</strong></td>
+          <td>Cadastro dos planos de manutenção preventiva com periodicidade e responsáveis</td>
+          <td>Supervisor MNT</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-purple">05</span></td>
+          <td><strong>Treinamento da Equipe</strong></td>
+          <td>Capacitação dos técnicos, encarregados e supervisores para uso no dia a dia</td>
+          <td>TI / Manutenção</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-purple">06</span></td>
+          <td><strong>Operação Plena</strong></td>
+          <td>Todas as OS passam a ser abertas e gerenciadas exclusivamente pelo sistema</td>
+          <td>Todos os setores</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight avoid-break" style="margin-top:24px;">
+      <p>
+        ✅ &nbsp;O sistema já está disponível online e pode ser acessado imediatamente
+        pelo navegador, sem instalação. O acesso inicial é feito com as credenciais
+        fornecidas pelo administrador do sistema.
+      </p>
+    </div>
+
+    <div class="card-grid-2 avoid-break" style="margin-top:20px;">
+      <div class="card" style="border-top: 3px solid #7c3aed;">
+        <h4>🌐 Acesso via Navegador</h4>
+        <p style="font-size:9.5pt;">
+          Chrome, Edge, Firefox ou Safari. Funciona em computadores, notebooks, tablets e smartphones.
+        </p>
+      </div>
+      <div class="card" style="border-top: 3px solid #7c3aed;">
+        <h4>☁️ Hospedagem em Nuvem</h4>
+        <p style="font-size:9.5pt;">
+          Servidor dedicado com disponibilidade 24/7, backup automático e acesso remoto de qualquer local.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Tecnobloco ERP v2.0</span>
+    <span>07 — Roteiro de Implantação</span>
+    <span>8</span>
+  </div>
+</div>
+
+</body>
+</html>

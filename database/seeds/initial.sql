@@ -10,25 +10,20 @@ USE tecnobloco;
 -- ==============================
 
 INSERT INTO departamentos (nome, descricao) VALUES
-  ('TI',              'Tecnologia da Informação e Suporte'),
-  ('SAC',             'Serviço de Atendimento ao Cliente'),
-  ('Limpeza',         'Higienização e limpeza das instalações'),
-  ('Lavanderia',      'Lavanderia industrial de uniformes e panos'),
-  ('Serviços Gerais', 'Serviços gerais e apoio operacional'),
-  ('Frotas',          'Gestão da frota de veículos'),
-  ('Manutenção',      'Manutenção preventiva e corretiva de equipamentos'),
-  ('Estoque',         'Controle de almoxarifado e estoque'),
-  ('Qualidade',       'Controle de qualidade e laboratório'),
-  ('Produção',        'Linha de produção de concreto e pré-moldados'),
-  ('Administração',   'Administração geral e secretaria'),
-  ('RH',              'Recursos Humanos e gestão de pessoal'),
-  ('Vendas',          'Comercial e força de vendas'),
-  ('Financeiro',      'Financeiro, contabilidade e tesouraria'),
-  ('Segurança',       'Segurança do trabalho e patrimonial'),
-  ('Diretoria',       'Diretoria executiva e alta gestão'),
-  ('Compras',         'Compras e suprimentos'),
-  ('Fornecedores',    'Relacionamento com fornecedores de matéria-prima'),
-  ('Clientes',        'Gestão de carteira de clientes');
+  ('Diretoria',              'Diretoria executiva e alta gestão'),
+  ('Administração',          'Administração geral, secretaria e apoio'),
+  ('Financeiro',             'Financeiro, contabilidade e tesouraria'),
+  ('RH',                     'Recursos Humanos, folha de pagamento e gestão de pessoal'),
+  ('Compras',                'Compras, suprimentos e gestão de contratos'),
+  ('TI',                     'Tecnologia da Informação e suporte de sistemas'),
+  ('Vendas',                 'Comercial, atendimento a clientes e orçamentos'),
+  ('Produção',               'Linha de produção de concreto, blocos e tubos pré-moldados'),
+  ('Manutenção',             'Manutenção preventiva, corretiva e preditiva de equipamentos'),
+  ('Qualidade',              'Controle de qualidade, laboratório e controle de traço'),
+  ('Estoque',                'Almoxarifado, matéria-prima e controle de insumos'),
+  ('Expedição',              'Carregamento, despacho e entrega de produtos'),
+  ('Frotas',                 'Gestão da frota de caminhões e veículos'),
+  ('Segurança do Trabalho',  'EPI, NRs, CIPA e segurança das instalações');
 
 -- Nota: o usuário Admin Master é criado pelo script setup-db.js com bcrypt real.
--- Cargos e Plano de Contas devem ser cadastrados pelo app.
+-- Cargos são inseridos pelo setup-db.js com base nos departamentos acima.
