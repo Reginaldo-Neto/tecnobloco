@@ -19,9 +19,10 @@ class AdminService {
 
   // ── Usuários ──────────────────────────────────────────────────────────────────
 
-  async listarUsuarios({ search, ativo, departamento_id } = {}) {
+  async listarUsuarios({ search, busca, ativo, departamento_id } = {}) {
     const where = ['1=1']; const params = [];
-    if (search)         { where.push('(u.nome LIKE ? OR u.email LIKE ? OR u.cpf LIKE ?)'); params.push(`%${search}%`,`%${search}%`,`%${search}%`); }
+    const q = search || busca;
+    if (q)              { where.push('(u.nome LIKE ? OR u.email LIKE ? OR u.cpf LIKE ?)'); params.push(`%${q}%`,`%${q}%`,`%${q}%`); }
     if (ativo !== undefined) { where.push('u.ativo = ?'); params.push(Number(ativo)); }
     if (departamento_id){ where.push('u.departamento_id = ?'); params.push(departamento_id); }
     const [rows] = await pool.execute(
@@ -49,10 +50,12 @@ class AdminService {
   }
 
   async criarUsuario(userId, { nome, cpf, email, senha, nivel_acesso, departamento_id, cargo_id }) {
-    if (!nome || !cpf || !senha) throw new AppError('Nome, CPF e senha obrigatórios', HTTP.BAD_REQUEST);
-    const cpfLimpo = cpf.replace(/\D/g, '');
-    const [[exCpf]] = await pool.execute(`SELECT id FROM usuarios WHERE cpf = ?`, [cpfLimpo]);
-    if (exCpf) throw new AppError('CPF já cadastrado', HTTP.CONFLICT);
+    if (!nome || !senha) throw new AppError('Nome e senha obrigatórios', HTTP.BAD_REQUEST);
+    let cpfLimpo = cpf ? cpf.replace(/\D/g, '') : null;
+    if (cpfLimpo) {
+      const [[exCpf]] = await pool.execute(`SELECT id FROM usuarios WHERE cpf = ?`, [cpfLimpo]);
+      if (exCpf) throw new AppError('CPF já cadastrado', HTTP.CONFLICT);
+    }
     if (email) {
       const [[exEmail]] = await pool.execute(`SELECT id FROM usuarios WHERE email = ?`, [email]);
       if (exEmail) throw new AppError('E-mail já cadastrado', HTTP.CONFLICT);
@@ -61,7 +64,7 @@ class AdminService {
     const [res] = await pool.execute(
       `INSERT INTO usuarios (nome, cpf, email, senha_hash, nivel_acesso, departamento_id, cargo_id)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nome, cpfLimpo, email || null, senha_hash, nivel_acesso || 0, departamento_id || null, cargo_id || null]
+      [nome, cpfLimpo || null, email || null, senha_hash, nivel_acesso || 0, departamento_id || null, cargo_id || null]
     );
     return { id: res.insertId };
   }
@@ -154,11 +157,12 @@ class AdminService {
 
   // ── Auditoria ─────────────────────────────────────────────────────────────────
 
-  async listarAuditoria({ usuario_id, tipo_evento, tabela, data_inicio, data_fim } = {}) {
+  async listarAuditoria({ usuario_id, usuario, tipo_evento, tabela, data_inicio, data_fim } = {}) {
     const where = ['1=1']; const params = [];
-    if (usuario_id)   { where.push('a.usuario_id = ?');    params.push(usuario_id); }
-    if (tipo_evento)  { where.push('a.tipo_evento = ?');   params.push(tipo_evento); }
-    if (tabela)       { where.push('a.tabela_afetada = ?');params.push(tabela); }
+    if (usuario_id)   { where.push('a.usuario_id = ?');      params.push(usuario_id); }
+    else if (usuario) { where.push('u.nome LIKE ?');          params.push(`%${usuario}%`); }
+    if (tipo_evento)  { where.push('a.tipo_evento = ?');      params.push(tipo_evento); }
+    if (tabela)       { where.push('a.tabela_afetada = ?');   params.push(tabela); }
     if (data_inicio)  { where.push('DATE(a.criado_em) >= ?'); params.push(data_inicio); }
     if (data_fim)     { where.push('DATE(a.criado_em) <= ?'); params.push(data_fim); }
     const [rows] = await pool.execute(

@@ -45,7 +45,7 @@ const AdminForms = {
           <div class="col-6"><label class="form-label">Cargo</label><select name="cargo_id" class="form-select"><option value="">Selecione...</option>${cOpts}</select></div>
         </div>
         <div class="mb-3 mt-2"><label class="form-label">Nível de Acesso *</label>
-          <select name="nivel" class="form-select" required>
+          <select name="nivel_acesso" class="form-select" required>
             <option value="0">0 — Menor Aprendiz</option>
             <option value="1">1 — Estagiário</option>
             <option value="2">2 — Auxiliar</option>
@@ -88,8 +88,8 @@ const AdminForms = {
       </div>
       <div class="row g-2 mt-1">
         <div class="col-6"><label class="form-label">Nível</label>
-          <select name="nivel" class="form-select">
-            ${[0,1,2,3,4,5,6,7].map(n => `<option value="${n}" ${u.nivel == n ? 'selected' : ''}>${n} — ${['Menor Aprendiz','Estagiário','Auxiliar','Operador','Supervisor','Gerente','Diretor','Admin'][n]}</option>`).join('')}
+          <select name="nivel_acesso" class="form-select">
+            ${[0,1,2,3,4,5,6,7].map(n => `<option value="${n}" ${u.nivel_acesso == n ? 'selected' : ''}>${n} — ${['Menor Aprendiz','Estagiário','Auxiliar','Operador','Supervisor','Gerente','Diretor','Admin'][n]}</option>`).join('')}
           </select>
         </div>
         <div class="col-6"><label class="form-label">Status</label>
@@ -154,7 +154,7 @@ const AdminForms = {
       if (!r || !r.success) { el.innerHTML = _empty('Erro ao carregar cargos.'); return; }
       const rows = r.data.map(c => `<tr>
         <td>${c.nome}</td>
-        <td>${c.nivel_padrao != null ? c.nivel_padrao : '—'}</td>
+        <td>${c.nivel_acesso != null ? c.nivel_acesso : '—'}</td>
         <td>${c.departamento_nome || '—'}</td>
         <td>${c.ativo ? '<span class="badge bg-success">Ativo</span>' : '<span class="badge bg-secondary">Inativo</span>'}</td>
       </tr>`).join('');
@@ -170,7 +170,7 @@ const AdminForms = {
         <div class="row g-2">
           <div class="col-6"><label class="form-label">Departamento</label><select name="departamento_id" class="form-select"><option value="">Selecione...</option>${dOpts}</select></div>
           <div class="col-6"><label class="form-label">Nível de Acesso Padrão</label>
-            <select name="nivel_padrao" class="form-select">
+            <select name="nivel_acesso" class="form-select">
               ${[0,1,2,3,4,5,6].map(n => `<option value="${n}">${n} — ${['Menor Aprendiz','Estagiário','Auxiliar','Operador','Supervisor','Gerente','Diretor'][n]}</option>`).join('')}
             </select>
           </div>
@@ -220,7 +220,7 @@ const AdminForms = {
         <td>${_fmtDate(log.criado_em)}</td>
         <td>${log.usuario_nome || '—'}</td>
         <td><span class="badge bg-${log.tipo_evento === 'CRIACAO' ? 'success' : log.tipo_evento === 'EXCLUSAO' ? 'danger' : 'warning'}">${log.tipo_evento}</span></td>
-        <td>${log.tabela || '—'}</td>
+        <td>${log.tabela_afetada || '—'}</td>
         <td>${log.registro_id || '—'}</td>
       </tr>`).join('');
       res.innerHTML = rows ? `<table class="table table-sm table-hover"><thead><tr><th>Data</th><th>Usuário</th><th>Tipo</th><th>Tabela</th><th>ID</th></tr></thead><tbody>${rows}</tbody></table>` : _empty('Nenhum log encontrado.');
