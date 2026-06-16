@@ -239,7 +239,9 @@ function renderTopbar(title, breadcrumb) {
         </div>
         <button class="topbar-btn" id="sidebar-toggle" title="Menu">☰</button>
         <div class="topbar-user" id="user-menu-toggle" title="${displayName}">
-          <div class="topbar-avatar">${initials}</div>
+          ${user && user.foto_url
+            ? `<img src="${escapeHtml(user.foto_url)}" class="topbar-avatar topbar-avatar-photo" alt="${displayName}" onerror="this.style.display='none';document.getElementById('topbar-avatar-fallback').style.display='flex';" /><div class="topbar-avatar" id="topbar-avatar-fallback" style="display:none;">${initials}</div>`
+            : `<div class="topbar-avatar" id="topbar-avatar-fallback">${initials}</div>`}
           <div>
             <div class="topbar-username">${displayName}</div>
             ${role ? `<div class="topbar-role">${role}</div>` : ''}
@@ -381,8 +383,15 @@ function _openProfileModal() {
     size:  'sm',
     body: `
       <div style="text-align:center;margin-bottom:var(--space-5);">
-        <div class="topbar-avatar" style="width:64px;height:64px;font-size:26px;margin:0 auto 8px;">${initials}</div>
+        <div style="position:relative;display:inline-block;margin-bottom:var(--space-3);">
+          ${user.foto_url
+            ? `<img src="${escapeHtml(user.foto_url)}" id="profile-foto-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--color-primary);display:block;" alt="foto" />`
+            : `<div class="topbar-avatar" id="profile-foto-preview" style="width:80px;height:80px;font-size:28px;margin:0;">${initials}</div>`}
+          <label for="profile-foto-input" style="position:absolute;bottom:0;right:-4px;background:var(--color-primary);border-radius:50%;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.3);" title="Alterar foto">📷</label>
+          <input type="file" id="profile-foto-input" accept="image/jpeg,image/png,image/webp" style="display:none;" />
+        </div>
         <div style="font-size:var(--font-size-sm);color:var(--text-muted);">${escapeHtml(user.departamento || '')} — ${nivelLabel}</div>
+        <div id="profile-foto-status" style="font-size:11px;color:var(--text-muted);margin-top:4px;"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Nome</label>
@@ -412,6 +421,67 @@ function _openProfileModal() {
   });
 
   modal.el.querySelector('#profile-cancel-btn').addEventListener('click', modal.close);
+
+  // ── Foto de perfil ──────────────────────────────────────────────
+  modal.el.querySelector('#profile-foto-input').addEventListener('change', async function () {
+    const file = this.files[0];
+    if (!file) return;
+    const statusEl = modal.el.querySelector('#profile-foto-status');
+    statusEl.textContent = 'Enviando foto...';
+
+    // Preview imediato
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const prev = modal.el.querySelector('#profile-foto-preview');
+      if (prev.tagName === 'IMG') {
+        prev.src = ev.target.result;
+      } else {
+        const img = document.createElement('img');
+        img.id = 'profile-foto-preview';
+        img.src = ev.target.result;
+        img.style.cssText = 'width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--color-primary);display:block;';
+        img.alt = 'foto';
+        prev.replaceWith(img);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Upload
+    const formData = new FormData();
+    formData.append('foto', file);
+    const token = API.getToken();
+    const base  = API.getBase();
+    try {
+      const res  = await fetch(`${base}/auth/profile/foto`, {
+        method:  'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body:    formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Erro ao enviar foto');
+
+      const stored = API.getUser();
+      if (stored) {
+        stored.foto_url = data.data.foto_url;
+        localStorage.setItem('tb_user', JSON.stringify(stored));
+      }
+      // Atualiza avatar na topbar sem reload
+      const topbarAvatar = document.querySelector('#user-menu-toggle .topbar-avatar, #user-menu-toggle .topbar-avatar-photo');
+      if (topbarAvatar) {
+        const img = document.createElement('img');
+        img.src = data.data.foto_url;
+        img.className = 'topbar-avatar topbar-avatar-photo';
+        img.style.cssText = 'object-fit:cover;';
+        img.alt = '';
+        topbarAvatar.replaceWith(img);
+      }
+      statusEl.textContent = '✓ Foto atualizada';
+      showToast('Foto de perfil atualizada!', 'success');
+    } catch (err) {
+      statusEl.textContent = '⚠ Erro: ' + (err.message || 'falha no upload');
+    }
+    this.value = '';
+  });
 
   modal.el.querySelector('#profile-save-btn').addEventListener('click', async () => {
     const nome       = (modal.el.querySelector('#profile-nome').value || '').trim();

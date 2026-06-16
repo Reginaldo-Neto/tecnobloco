@@ -2,9 +2,6 @@
 const pool = require('../../../config/database');
 
 class DashboardService {
-  /**
-   * Stats: total colaboradores, ordens em aberto, producao hoje, alertas ativos
-   */
   async getStats() {
     const [[{ colaboradores }]] = await pool.execute(
       `SELECT COUNT(*) AS colaboradores FROM usuarios WHERE ativo = 1`
@@ -12,34 +9,27 @@ class DashboardService {
     const [[{ ordensAberto }]] = await pool.execute(
       `SELECT COUNT(*) AS ordensAberto FROM ordens_servico WHERE status NOT IN ('concluida','cancelada')`
     );
-    // producao hoje = ordens_producao com data_inicio_real = today
-    const [[{ producaoHoje }]] = await pool.execute(
-      `SELECT COUNT(*) AS producaoHoje FROM ordens_producao WHERE DATE(criado_em) = CURDATE()`
+    // OS abertas criadas hoje
+    const [[{ osHoje }]] = await pool.execute(
+      `SELECT COUNT(*) AS osHoje FROM ordens_servico WHERE DATE(criado_em) = CURDATE()`
     );
-    // alertas = chamados TI criticos abertos + ocorrencias abertas + solicitacoes pendentes criticas
-    const [[{ alertasTI }]] = await pool.execute(
-      `SELECT COUNT(*) AS alertasTI FROM chamados_ti WHERE status NOT IN ('resolvido','fechado') AND prioridade='critica'`
+    // Alertas = OS críticas em aberto
+    const [[{ alertas }]] = await pool.execute(
+      `SELECT COUNT(*) AS alertas FROM ordens_servico WHERE prioridade = 'critica' AND status NOT IN ('concluida','cancelada')`
     );
-    const [[{ alertasOcorrencias }]] = await pool.execute(
-      `SELECT COUNT(*) AS alertasOcorrencias FROM ocorrencias WHERE status = 'aberto'`
-    );
-    const alertas = (alertasTI || 0) + (alertasOcorrencias || 0);
 
     return {
       colaboradores,
       colaboradoresChange: 0,
       ordensAberto,
       ordensChange: 0,
-      producaoHoje,
+      producaoHoje: osHoje,
       producaoChange: 0,
       alertas,
       alertasChange: 0,
     };
   }
 
-  /**
-   * Recent audit log activity (last 20 entries)
-   */
   async getActivity() {
     const [rows] = await pool.execute(`
       SELECT al.tipo_evento AS acao, al.tabela_afetada AS modulo,
@@ -58,50 +48,31 @@ class DashboardService {
     return rows;
   }
 
-  /**
-   * Active system alerts
-   */
   async getAlerts() {
     const alerts = [];
 
-    // Chamados TI críticos
-    const [[{ critTI }]] = await pool.execute(
-      `SELECT COUNT(*) AS critTI FROM chamados_ti WHERE status NOT IN ('resolvido','fechado') AND prioridade='critica'`
-    );
-    if (critTI > 0) {
-      alerts.push({ tipo: 'danger', titulo: 'Chamados TI Críticos', mensagem: `${critTI} chamado(s) crítico(s) pendentes de atendimento.` });
-    }
-
-    // Ordens de serviço emergenciais
+    // OS críticas em aberto
     const [[{ osEmerg }]] = await pool.execute(
       `SELECT COUNT(*) AS osEmerg FROM ordens_servico WHERE prioridade='critica' AND status NOT IN ('concluida','cancelada')`
     );
     if (osEmerg > 0) {
-      alerts.push({ tipo: 'danger', titulo: 'OS Emergenciais', mensagem: `${osEmerg} ordem(ns) de manutenção emergencial em aberto.` });
+      alerts.push({ tipo: 'danger', titulo: 'OS Emergenciais', mensagem: `${osEmerg} ordem(ns) de manutenção crítica em aberto.` });
     }
 
-    // Ocorrências abertas
-    const [[{ ocAbertas }]] = await pool.execute(
-      `SELECT COUNT(*) AS ocAbertas FROM ocorrencias WHERE status = 'aberto'`
+    // OS com prazo vencido
+    const [[{ osVencidas }]] = await pool.execute(
+      `SELECT COUNT(*) AS osVencidas FROM ordens_servico WHERE data_previsao IS NOT NULL AND data_previsao < NOW() AND status NOT IN ('concluida','cancelada')`
     );
-    if (ocAbertas > 0) {
-      alerts.push({ tipo: 'warning', titulo: 'Ocorrências Registradas', mensagem: `${ocAbertas} ocorrência(s) aguardando análise.` });
+    if (osVencidas > 0) {
+      alerts.push({ tipo: 'warning', titulo: 'OS com Prazo Vencido', mensagem: `${osVencidas} ordem(ns) com data prevista ultrapassada.` });
     }
 
-    // Pedidos de compra pendentes
-    const [[{ compraPend }]] = await pool.execute(
-      `SELECT COUNT(*) AS compraPend FROM solicitacoes_compra WHERE status = 'pendente'`
+    // OS em andamento (informativo)
+    const [[{ osEmAndamento }]] = await pool.execute(
+      `SELECT COUNT(*) AS osEmAndamento FROM ordens_servico WHERE status = 'em_andamento'`
     );
-    if (compraPend > 0) {
-      alerts.push({ tipo: 'info', titulo: 'Solicitações de Compra', mensagem: `${compraPend} solicitação(ões) aguardando aprovação.` });
-    }
-
-    // Veículos solicitados pendentes
-    const [[{ veiPend }]] = await pool.execute(
-      `SELECT COUNT(*) AS veiPend FROM solicitacoes_veiculo WHERE status = 'pendente'`
-    );
-    if (veiPend > 0) {
-      alerts.push({ tipo: 'info', titulo: 'Solicitações de Veículo', mensagem: `${veiPend} solicitação(ões) de veículo pendentes.` });
+    if (osEmAndamento > 0) {
+      alerts.push({ tipo: 'info', titulo: 'OS em Andamento', mensagem: `${osEmAndamento} ordem(ns) sendo executada(s) agora.` });
     }
 
     if (alerts.length === 0) {

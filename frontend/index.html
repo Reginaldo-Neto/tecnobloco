@@ -120,24 +120,31 @@
       border-radius: var(--radius); letter-spacing: .3px;
     }
 
-    /* Server config */
-    .server-section { margin-top: var(--space-5); }
-    .server-toggle {
-      display: flex; align-items: center; gap: var(--space-2);
-      cursor: pointer; font-size: var(--font-size-xs); color: var(--text-muted);
-      background: none; border: none; padding: 0;
-      font-family: inherit; transition: color var(--transition); user-select: none;
+    /* ── Login card inputs — sempre escuros, text sempre branco ── */
+    .login-card .form-control {
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.12);
     }
-    .server-toggle:hover { color: var(--text-secondary); }
-    .server-toggle-icon { font-size: 10px; transition: transform var(--transition); }
-    .server-toggle-icon.open { transform: rotate(90deg); }
-    .server-config {
-      display: none; margin-top: var(--space-3); padding: var(--space-4);
-      background: rgba(255,255,255,.03); border: 1px solid var(--border-color);
-      border-radius: var(--radius);
+    .login-card .form-control::placeholder { color: rgba(255,255,255,0.30); }
+    .login-card .form-control:hover {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(255,255,255,0.22);
     }
-    .server-config.open { display: block; }
-    .server-config label { font-size: var(--font-size-xs); color: var(--text-muted); display: block; margin-bottom: var(--space-1); }
+    .login-card .form-control:focus {
+      background: rgba(255,255,255,0.13);
+      border-color: rgba(124,58,237,0.85);
+      color: #ffffff;
+    }
+    /* Autofill override específico do login — mantém fundo escuro e texto branco */
+    .login-card input:-webkit-autofill,
+    .login-card input:-webkit-autofill:hover,
+    .login-card input:-webkit-autofill:focus,
+    .login-card input:-webkit-autofill:active {
+      -webkit-text-fill-color: #ffffff;
+      -webkit-box-shadow: 0 0 0 1000px rgba(28,34,54,0.98) inset;
+      caret-color: #ffffff;
+    }
 
     .server-status-row {
       display: flex; align-items: center; justify-content: center;
@@ -225,22 +232,6 @@
 
       </form>
 
-      <!-- Server configuration (collapsible) -->
-      <div class="server-section">
-        <button type="button" class="server-toggle" id="server-toggle-btn">
-          <span class="server-toggle-icon" id="server-toggle-icon">▶</span>
-          Configurar servidor
-        </button>
-        <div class="server-config" id="server-config-panel">
-          <label for="server-ip">Endereço IP do servidor</label>
-          <div class="input-group">
-            <input type="text" id="server-ip" class="form-control" placeholder="192.168.1.100" autocomplete="off" />
-            <button type="button" class="btn btn-secondary" id="save-server-btn"
-              style="border-radius:0 var(--border-radius) var(--border-radius) 0;border-left:0;">Salvar</button>
-          </div>
-          <p class="form-hint mt-2">Deixe vazio para usar a origem padrão (mesmo host).</p>
-        </div>
-      </div>
 
     </div><!-- /.login-card -->
 
@@ -285,12 +276,6 @@
     const errorText   = document.getElementById('login-error-text');
     const pwdToggle   = document.getElementById('password-toggle');
 
-    const serverToggleBtn   = document.getElementById('server-toggle-btn');
-    const serverToggleIcon  = document.getElementById('server-toggle-icon');
-    const serverConfigPanel = document.getElementById('server-config-panel');
-    const serverIpInput     = document.getElementById('server-ip');
-    const saveServerBtn     = document.getElementById('save-server-btn');
-
     const connDot  = document.getElementById('conn-dot');
     const connText = document.getElementById('conn-text');
 
@@ -313,9 +298,6 @@
       }
     }
 
-    // ── Restore saved server IP ────────────────────────────────
-    const savedIp = localStorage.getItem('tb_server');
-    if (savedIp && !(_devParam === '1' && _isLocal)) serverIpInput.value = savedIp;
 
     // ── Password visibility toggle ─────────────────────────────
     pwdToggle.addEventListener('click', () => {
@@ -323,26 +305,6 @@
       senhaInput.type = isText ? 'password' : 'text';
       pwdToggle.textContent = isText ? '👁' : '🙈';
       pwdToggle.setAttribute('aria-label', isText ? 'Mostrar senha' : 'Ocultar senha');
-    });
-
-    // ── Server config toggle ───────────────────────────────────
-    serverToggleBtn.addEventListener('click', () => {
-      const isOpen = serverConfigPanel.classList.toggle('open');
-      serverToggleIcon.classList.toggle('open', isOpen);
-    });
-
-    saveServerBtn.addEventListener('click', () => {
-      const val = serverIpInput.value.trim();
-      if (val) {
-        localStorage.setItem('tb_server', val);
-      } else {
-        localStorage.removeItem('tb_server');
-      }
-      checkHealth();
-      const orig = saveServerBtn.textContent;
-      saveServerBtn.textContent = '✔ Salvo';
-      saveServerBtn.disabled = true;
-      setTimeout(() => { saveServerBtn.textContent = orig; saveServerBtn.disabled = false; }, 1800);
     });
 
     // ── Error display ──────────────────────────────────────────

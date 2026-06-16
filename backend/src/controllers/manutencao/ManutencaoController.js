@@ -205,6 +205,18 @@ class ManutencaoController {
     } catch (err) { next(err); }
   }
 
+  async uploadFotoEquipamento(req, res, next) {
+    try {
+      const id = Number(req.params.id);
+      if (!id || isNaN(id)) return res.status(HTTP.BAD_REQUEST).json({ success: false, message: 'ID inválido' });
+      if (!req.file) return res.status(HTTP.BAD_REQUEST).json({ success: false, message: 'Imagem não enviada' });
+      const fotoPath = `/uploads/equipamentos/${req.file.filename}`;
+      await ManutencaoService.atualizarFotoEquipamento(id, fotoPath);
+      await req.audit(AUDITORIA.ALTERACAO, 'equipamentos', id, { depois: { foto_url: fotoPath } });
+      res.json({ success: true, data: { foto_url: fotoPath } });
+    } catch (err) { next(err); }
+  }
+
   // ── Indicadores ──────────────────────────────────────────────────────────────
 
   async calcularIndicadores(req, res, next) {

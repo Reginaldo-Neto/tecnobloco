@@ -68,6 +68,21 @@ class AuthController {
     }
   }
 
+  async uploadFotoPerfil(req, res, next) {
+    try {
+      if (!req.file) {
+        return res.status(HTTP.BAD_REQUEST).json({ success: false, message: 'Imagem não enviada' });
+      }
+      const pool = require('../../../config/database');
+      const fotoPath = `/uploads/profiles/${req.file.filename}`;
+      await pool.execute(`UPDATE usuarios SET foto_url = ? WHERE id = ?`, [fotoPath, req.user.id]);
+      await req.audit(AUDITORIA.ALTERACAO, 'usuarios', req.user.id, { depois: { campo: 'foto_url' } });
+      res.json({ success: true, data: { foto_url: fotoPath }, message: 'Foto atualizada' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async alterarSenha(req, res, next) {
     try {
       const { senhaAtual, novaSenha } = req.body;

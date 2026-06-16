@@ -402,6 +402,15 @@ h6 { font-size: var(--font-size-sm); }
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(124,58,237,0.4);
 }
+.topbar-avatar-photo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.4);
+}
 
 .topbar-username {
   font-size: var(--font-size-sm);
@@ -846,7 +855,8 @@ input:-webkit-autofill:active {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
 }
-.form-select option { background-color: var(--bg-card); color: var(--text-primary); }
+.form-select option,
+select.form-control option { background-color: var(--bg-card); color: var(--text-primary); }
 
 textarea.form-control { min-height: 90px; resize: vertical; }
 

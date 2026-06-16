@@ -87,69 +87,28 @@
         </div>
       </div>
 
-      <!-- ── Stat cards ── -->
-      <div class="stat-grid" id="stat-grid">
 
-        <div class="stat-card accent-purple">
-          <div class="stat-info">
-            <div class="stat-label">Total Colaboradores</div>
-            <div class="stat-value" id="stat-colaboradores">—</div>
-            <div class="stat-change positive" id="stat-colaboradores-change"></div>
-          </div>
-          <div class="stat-icon primary">👤</div>
-        </div>
-
-        <div class="stat-card accent-yellow">
-          <div class="stat-info">
-            <div class="stat-label">Ordens em Aberto</div>
-            <div class="stat-value" id="stat-ordens">—</div>
-            <div class="stat-change" id="stat-ordens-change"></div>
-          </div>
-          <div class="stat-icon warning">📋</div>
-        </div>
-
-        <div class="stat-card accent-green">
-          <div class="stat-info">
-            <div class="stat-label">Produção Hoje</div>
-            <div class="stat-value" id="stat-producao">—</div>
-            <div class="stat-change" id="stat-producao-change"></div>
-          </div>
-          <div class="stat-icon success">🏭</div>
-        </div>
-
-        <div class="stat-card accent-red">
-          <div class="stat-info">
-            <div class="stat-label">Alertas Ativos</div>
-            <div class="stat-value" id="stat-alertas">—</div>
-            <div class="stat-change danger" id="stat-alertas-change"></div>
-          </div>
-          <div class="stat-icon danger">⚠</div>
-        </div>
-
-      </div><!-- /.stat-grid -->
-
-      <!-- ── Charts row ── -->
+      <!-- ── OS painéis ── -->
       <div class="charts-row">
 
-        <!-- Production trend chart -->
+        <!-- Últimas OS em Aberto -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Produção — Últimos 7 dias</h3>
-            <span class="badge badge-success badge-dot">Atualizado</span>
+            <h3 class="card-title">Últimas OS em Aberto</h3>
+            <a href="/pages/manutencao/index.html" class="btn btn-sm btn-secondary">Ver todas</a>
           </div>
-          <div class="chart-wrap">
-            <canvas id="chart-producao"></canvas>
+          <div class="card-body p-0" id="dash-os-aberto-wrap">
+            <div class="page-loader" style="min-height:160px;"><span class="spinner"></span></div>
           </div>
         </div>
 
-        <!-- Sector distribution -->
+        <!-- Resumo de Manutenção -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Distribuição por Setor</h3>
+            <h3 class="card-title">Manutenção — Resumo</h3>
           </div>
-          <div class="chart-wrap" style="display:flex;flex-direction:column;align-items:center;">
-            <canvas id="chart-setores" style="max-height:200px;max-width:260px;"></canvas>
-            <div id="chart-setores-legend" class="d-flex flex-wrap gap-2 mt-3 justify-center" style="justify-content:center;"></div>
+          <div class="card-body" id="dash-manu-resumo">
+            <div class="page-loader" style="min-height:160px;"><span class="spinner"></span></div>
           </div>
         </div>
 
@@ -214,8 +173,6 @@
     </main>
   </div><!-- /.app-layout -->
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="../assets/js/api.js"></script>
   <script src="../assets/js/components.js"></script>
   <script src="../assets/js/funcoes/_core.js"></script>
@@ -237,10 +194,10 @@
       renderQuickActions('quick-actions-grid');
       _renderWelcome(user);
       _startClock();
-      _loadStats();
       _loadActivity();
       _loadAlerts();
-      _initCharts();
+      _loadOSAbertos();
+      _loadManuStats();
       _injectFnSidebar();
     }
 
@@ -329,132 +286,66 @@
       requestAnimationFrame(step);
     }
 
-    // ── Charts ───────────────────────────────────────────────────
-    function _initCharts() {
-      // Chart.js global defaults — dark theme
-      Chart.defaults.color          = '#94a3b8';
-      Chart.defaults.borderColor    = 'rgba(255,255,255,0.06)';
-      Chart.defaults.font.family    = "'Inter','Segoe UI',system-ui,sans-serif";
-      Chart.defaults.font.size      = 12;
-
-      _initProducaoChart();
-      _initSetoresChart();
+    // ── OS em Aberto ─────────────────────────────────────────────
+    async function _loadOSAbertos() {
+      const wrap = document.getElementById('dash-os-aberto-wrap');
+      try {
+        const resp = await API.get('/manutencao/os');
+        const todos = Array.isArray(resp) ? resp : (resp.data || resp.items || []);
+        const abertos = todos.filter(o => !['concluida','cancelada'].includes(o.status)).slice(0, 6);
+        if (!abertos.length) {
+          wrap.innerHTML = '<div class="empty-state" style="padding:32px 16px;"><span class="empty-state-icon">✅</span><span class="empty-state-title">Nenhuma OS em aberto</span></div>';
+          return;
+        }
+        const prioMap = { critica:'badge-danger', alta:'badge-warning', media:'badge-info', baixa:'badge-muted' };
+        const stMap   = { aberta:'badge-warning', em_andamento:'badge-info', aguardando_pecas:'badge-secondary' };
+        wrap.innerHTML = `<div style="overflow-x:auto;">
+          <table class="table table-hover" style="font-size:13px;">
+            <thead><tr><th>Código</th><th>Equipamento</th><th>Tipo</th><th>Prioridade</th><th>Status</th></tr></thead>
+            <tbody>${abertos.map(o => `
+              <tr>
+                <td style="font-weight:600;color:var(--color-primary);">${_esc(o.codigo || ('#' + o.id))}</td>
+                <td>${_esc(o.equipamento_nome || o.equipamento_tag || '—')}</td>
+                <td>${_esc(o.tipo || '—')}</td>
+                <td><span class="badge ${prioMap[o.prioridade] || 'badge-muted'}">${_esc(o.prioridade || '—')}</span></td>
+                <td><span class="badge ${stMap[o.status] || 'badge-secondary'}">${_esc(o.status || '—').replace('_',' ')}</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+      } catch {
+        wrap.innerHTML = '<div class="empty-state" style="padding:32px 16px;"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">Erro ao carregar OS</span></div>';
+      }
     }
 
-    function _initProducaoChart() {
-      const ctx = document.getElementById('chart-producao');
-      if (!ctx) return;
-
-      // Placeholder data — replace with API call when endpoint exists
-      const labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-      const data   = [420, 485, 460, 510, 495, 390, 430];
-
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Produção (kg)',
-            data,
-            borderColor: '#7c3aed',
-            backgroundColor: (ctx) => {
-              const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 220);
-              gradient.addColorStop(0,   'rgba(124,58,237,.35)');
-              gradient.addColorStop(0.7, 'rgba(124,58,237,.05)');
-              gradient.addColorStop(1,   'rgba(124,58,237,0)');
-              return gradient;
-            },
-            borderWidth: 2.5,
-            pointBackgroundColor: '#7c3aed',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            tension: 0.4,
-            fill: true,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(22,27,39,.95)',
-              borderColor: 'rgba(255,255,255,.1)',
-              borderWidth: 1,
-              padding: 10,
-              titleColor: '#f1f5f9',
-              bodyColor: '#94a3b8',
-              callbacks: {
-                label: ctx => ` ${ctx.parsed.y.toLocaleString('pt-BR')} kg`,
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: '#64748b' },
-            },
-            y: {
-              grid: { color: 'rgba(255,255,255,.04)' },
-              ticks: { color: '#64748b', callback: v => v >= 1000 ? v/1000+'k' : v },
-              beginAtZero: false,
-            }
-          }
-        }
-      });
-    }
-
-    function _initSetoresChart() {
-      const ctx = document.getElementById('chart-setores');
-      if (!ctx) return;
-
-      const setores = ['Produção', 'RH', 'Estoque', 'Manutenção', 'Qualidade', 'Outros'];
-      const values  = [32, 18, 14, 12, 10, 14];
-      const colors  = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#64748b'];
-
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: setores,
-          datasets: [{
-            data: values,
-            backgroundColor: colors.map(c => c + 'cc'),
-            borderColor: colors,
-            borderWidth: 2,
-            hoverBorderWidth: 3,
-            hoverOffset: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          cutout: '68%',
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(22,27,39,.95)',
-              borderColor: 'rgba(255,255,255,.1)',
-              borderWidth: 1,
-              padding: 10,
-              callbacks: {
-                label: ctx => ` ${ctx.label}: ${ctx.parsed}%`
-              }
-            }
-          }
-        }
-      });
-
-      // Render custom legend
-      const legend = document.getElementById('chart-setores-legend');
-      if (legend) {
-        legend.innerHTML = setores.map((s, i) => `
-          <div style="display:flex;align-items:center;gap:5px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0;display:inline-block;"></span>
-            <span style="font-size:11px;color:var(--text-muted);">${s} <strong style="color:var(--text-secondary);">${values[i]}%</strong></span>
-          </div>`).join('');
+    // ── Resumo de Manutenção ──────────────────────────────────────
+    async function _loadManuStats() {
+      const wrap = document.getElementById('dash-manu-resumo');
+      try {
+        const resp = await API.get('/manutencao/stats');
+        const s = resp.data || resp;
+        wrap.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-3);">
+            <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:var(--space-3);text-align:center;">
+              <div style="font-size:2rem;font-weight:800;color:#f87171;">${s.osAberta ?? '—'}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">OS Abertas</div>
+            </div>
+            <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius);padding:var(--space-3);text-align:center;">
+              <div style="font-size:2rem;font-weight:800;color:#fbbf24;">${s.osEmAndamento ?? '—'}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Em Andamento</div>
+            </div>
+            <div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:var(--radius);padding:var(--space-3);text-align:center;">
+              <div style="font-size:2rem;font-weight:800;color:#fc8181;">${s.osCritica ?? '—'}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">OS Críticas</div>
+            </div>
+            <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius);padding:var(--space-3);text-align:center;">
+              <div style="font-size:2rem;font-weight:800;color:#60a5fa;">${s.preventivaProxima ?? '—'}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Preventivas (30d)</div>
+            </div>
+          </div>
+          <a href="/pages/manutencao/index.html" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">Ir para Manutenção →</a>`;
+      } catch {
+        wrap.innerHTML = '<div class="empty-state" style="padding:32px 16px;"><span class="empty-state-icon">⚠️</span><span class="empty-state-title">Erro ao carregar resumo</span></div>';
       }
     }
 

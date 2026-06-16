@@ -281,6 +281,13 @@ class ManutencaoService {
     return { id };
   }
 
+  async atualizarFotoEquipamento(id, fotoUrl) {
+    const [[equip]] = await pool.execute(`SELECT id FROM equipamentos WHERE id = ?`, [id]);
+    if (!equip) throw new AppError('Equipamento não encontrado', HTTP.NOT_FOUND);
+    await pool.execute(`UPDATE equipamentos SET foto_url = ? WHERE id = ?`, [fotoUrl, id]);
+    return { id };
+  }
+
   async prontuarioEquipamento(id) {
     const [[equipamento]] = await pool.execute(`SELECT * FROM equipamentos WHERE id = ?`, [id]);
     if (!equipamento) throw new AppError('Equipamento não encontrado', HTTP.NOT_FOUND);

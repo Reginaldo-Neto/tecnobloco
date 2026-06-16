@@ -192,6 +192,17 @@
     .status-os-badge.cancelada       { background:rgba(100,116,139,.2); color:#94a3b8; }
 
     .prev-tipo-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; background:rgba(124,58,237,.15); color:#a78bfa; }
+
+    /* ── Foto na máquina ── */
+    .eq-card-photo {
+      margin: calc(-1*var(--space-4)) calc(-1*var(--space-4)) var(--space-3);
+      height: 130px;
+      overflow: hidden;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+    .eq-card-photo img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
   </style>
 </head>
 <body>
@@ -299,7 +310,9 @@
       <div class="pront-tabs">
         <div class="pront-tab active" data-tab="info">📋 Dados Técnicos</div>
         <div class="pront-tab" data-tab="os">🔧 Histórico de OS</div>
+        <div class="pront-tab" data-tab="foto">📷 Foto</div>
         <div class="pront-tab" data-tab="manual">📄 Manual PDF</div>
+        <div class="pront-tab" data-tab="edit" id="tab-edit-btn" style="display:none;">✏️ Editar</div>
       </div>
 
       <!-- Tab: Dados Técnicos -->
@@ -331,6 +344,21 @@
         <div id="pront-os-empty" style="display:none; text-align:center; padding:32px; color:var(--text-muted);">Nenhuma OS registrada para esta máquina.</div>
       </div>
 
+      <!-- Tab: Foto -->
+      <div class="pront-panel" id="tab-foto">
+        <div id="pront-foto-atual" style="margin-bottom:var(--space-4);"></div>
+        <div id="pront-foto-upload" style="display:none;">
+          <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:var(--space-3);">
+            Envie uma foto da máquina (JPG, PNG, WebP — máx. 8 MB):
+          </div>
+          <div style="display:flex;gap:var(--space-3);align-items:center;flex-wrap:wrap;">
+            <input type="file" id="pront-foto-input" accept="image/jpeg,image/png,image/webp" class="form-control" style="max-width:360px;" />
+            <button class="btn btn-primary btn-sm" id="pront-foto-upload-btn">Enviar Foto</button>
+          </div>
+          <div id="pront-foto-progress" style="display:none;margin-top:var(--space-3);color:var(--text-muted);font-size:var(--font-size-sm);">Enviando...</div>
+        </div>
+      </div>
+
       <!-- Tab: Manual PDF -->
       <div class="pront-panel" id="tab-manual">
         <div id="pront-manual-atual" style="margin-bottom:var(--space-4);"></div>
@@ -343,6 +371,66 @@
             <button class="btn btn-primary btn-sm" id="pront-pdf-upload-btn">Enviar PDF</button>
           </div>
           <div id="pront-pdf-progress" style="display:none; margin-top:var(--space-3); color:var(--text-muted); font-size:var(--font-size-sm);">Enviando...</div>
+        </div>
+      </div>
+
+      <!-- Tab: Editar (nível >= 3) -->
+      <div class="pront-panel" id="tab-edit">
+        <form id="form-edit-maquina" novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label required">Nome da Máquina</label>
+              <input type="text" id="em-nome" class="form-control" maxlength="200" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código / TAG</label>
+              <input type="text" id="em-codigo" class="form-control" maxlength="50" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo</label>
+              <input type="text" id="em-tipo" class="form-control" maxlength="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Marca</label>
+              <input type="text" id="em-marca" class="form-control" maxlength="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Modelo</label>
+              <input type="text" id="em-modelo" class="form-control" maxlength="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Número de Série</label>
+              <input type="text" id="em-serie" class="form-control" maxlength="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data de Aquisição</label>
+              <input type="date" id="em-aquisicao" class="form-control" onclick="try{this.showPicker()}catch(e){}" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Setor / Linha</label>
+              <select id="em-depto" class="form-control"><option value="">Selecione...</option></select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Localização</label>
+              <input type="text" id="em-local" class="form-control" maxlength="200" />
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Status</label>
+              <select id="em-status" class="form-control">
+                <option value="operacional">Operacional</option>
+                <option value="em_manutencao">Em Manutenção</option>
+                <option value="inativo">Inativo</option>
+                <option value="sucata">Sucata</option>
+              </select>
+            </div>
+          </div>
+          <div id="edit-maq-error" class="alert alert-danger" style="display:none;margin-top:var(--space-3);">
+            <span class="alert-icon">⚠</span><span id="edit-maq-error-text"></span>
+          </div>
+        </form>
+        <div style="display:flex;gap:var(--space-2);margin-top:var(--space-4);">
+          <button class="btn btn-primary" id="pront-edit-save">Salvar Alterações</button>
+          <button class="btn btn-secondary" id="pront-edit-cancel">Cancelar</button>
         </div>
       </div>
 
@@ -518,6 +606,7 @@ function _renderizarCards(lista) {
 
     return `
       <div class="eq-card ${stCls}" data-id="${eq.id}">
+        ${eq.foto_url ? `<div class="eq-card-photo"><img src="${escapeHtml(eq.foto_url)}" alt="${escapeHtml(eq.nome)}" loading="lazy" /></div>` : ''}
         <div class="eq-card-head">
           <div>
             <div class="eq-card-name">${escapeHtml(eq.nome)}</div>
@@ -680,6 +769,14 @@ function _renderProntuario({ equipamento: eq, os, totais }) {
     `).join('');
   }
 
+  // Foto tab
+  _renderFotoTab(eq);
+
+  // Edit tab — show only for admin
+  const editTabBtn = document.getElementById('tab-edit-btn');
+  if (editTabBtn) editTabBtn.style.display = _userNivel >= 3 ? '' : 'none';
+  if (_userNivel >= 3) _preencherFormEdit(eq);
+
   // Manual PDF tab
   const manualAtual = document.getElementById('pront-manual-atual');
   const manualUpload = document.getElementById('pront-manual-upload');
@@ -785,6 +882,122 @@ async function _submitNovaMaquina() {
   }
 }
 
+// ── Foto da Máquina ───────────────────────────────────────────────────────────
+function _renderFotoTab(eq) {
+  const fotoAtual  = document.getElementById('pront-foto-atual');
+  const fotoUpload = document.getElementById('pront-foto-upload');
+
+  fotoAtual.innerHTML = eq.foto_url
+    ? `<div style="text-align:center;"><img src="${escapeHtml(eq.foto_url)}" alt="${escapeHtml(eq.nome)}"
+        style="max-width:100%;max-height:300px;border-radius:var(--border-radius);border:1px solid var(--border-color);object-fit:contain;" /></div>`
+    : `<p style="color:var(--text-muted);font-size:var(--font-size-sm);">Nenhuma foto cadastrada para esta máquina.</p>`;
+
+  fotoUpload.style.display = _userNivel >= 2 ? 'block' : 'none';
+  if (_userNivel >= 2) {
+    const btn  = document.getElementById('pront-foto-upload-btn');
+    const inp  = document.getElementById('pront-foto-input');
+    const prog = document.getElementById('pront-foto-progress');
+    btn.onclick = async () => {
+      const file = inp.files[0];
+      if (!file) { showToast('Selecione uma imagem.', 'warning'); return; }
+      btn.disabled = true;
+      prog.style.display = 'block';
+      try {
+        const fd  = new FormData();
+        fd.append('foto', file);
+        const res = await fetch(`${API.getBase()}/manutencao/equipamentos/${_currentEquipId}/foto`, {
+          method: 'POST',
+          headers: API.getToken() ? { Authorization: `Bearer ${API.getToken()}` } : {},
+          body: fd,
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || 'Erro no upload');
+        showToast('Foto enviada com sucesso!', 'success');
+        _allEquipamentos = _allEquipamentos.map(e =>
+          e.id === _currentEquipId ? { ...e, foto_url: data.data.foto_url } : e
+        );
+        _aplicarFiltros();
+        const r2 = await API.get(`/manutencao/equipamentos/${_currentEquipId}/prontuario`);
+        _renderProntuario(r2.data || r2);
+        document.querySelector('.pront-tab[data-tab="foto"]').click();
+      } catch (err) {
+        showToast(err.message || 'Erro ao enviar foto', 'danger');
+      } finally {
+        btn.disabled = false;
+        prog.style.display = 'none';
+        inp.value = '';
+      }
+    };
+  }
+}
+
+// ── Editar Máquina ────────────────────────────────────────────────────────────
+function _preencherFormEdit(eq) {
+  document.getElementById('em-nome').value   = eq.nome || '';
+  document.getElementById('em-codigo').value = eq.codigo || '';
+  document.getElementById('em-tipo').value   = eq.tipo || '';
+  document.getElementById('em-marca').value  = eq.marca || '';
+  document.getElementById('em-modelo').value = eq.modelo || '';
+  document.getElementById('em-serie').value  = eq.numero_serie || '';
+  document.getElementById('em-local').value  = eq.localizacao || '';
+  document.getElementById('em-status').value = eq.status || 'operacional';
+  document.getElementById('em-aquisicao').value = eq.data_aquisicao
+    ? String(eq.data_aquisicao).split('T')[0] : '';
+  document.getElementById('edit-maq-error').style.display = 'none';
+
+  // Fill departamento options if not already loaded
+  const sel = document.getElementById('em-depto');
+  if (sel.options.length <= 1 && _deptos.length) {
+    _deptos.forEach(d => sel.insertAdjacentHTML('beforeend', `<option value="${d.id}">${escapeHtml(d.nome)}</option>`));
+  }
+  sel.value = eq.departamento_id || '';
+}
+
+async function _submitEditMaquina() {
+  const errEl  = document.getElementById('edit-maq-error');
+  const errTxt = document.getElementById('edit-maq-error-text');
+  const btn    = document.getElementById('pront-edit-save');
+  errEl.style.display = 'none';
+
+  const nome = document.getElementById('em-nome').value.trim();
+  if (!nome) { errTxt.textContent = 'Nome da máquina é obrigatório.'; errEl.style.display = 'flex'; return; }
+
+  const payload = {
+    nome,
+    codigo:          document.getElementById('em-codigo').value.trim() || null,
+    tipo:            document.getElementById('em-tipo').value.trim() || null,
+    marca:           document.getElementById('em-marca').value.trim() || null,
+    modelo:          document.getElementById('em-modelo').value.trim() || null,
+    numero_serie:    document.getElementById('em-serie').value.trim() || null,
+    data_aquisicao:  document.getElementById('em-aquisicao').value || null,
+    departamento_id: document.getElementById('em-depto').value || null,
+    localizacao:     document.getElementById('em-local').value.trim() || null,
+    status:          document.getElementById('em-status').value || null,
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+  try {
+    await API.put(`/manutencao/equipamentos/${_currentEquipId}`, payload);
+    showToast('Máquina atualizada com sucesso!', 'success');
+    const deptoNome = _deptos.find(d => String(d.id) === String(payload.departamento_id))?.nome;
+    _allEquipamentos = _allEquipamentos.map(e =>
+      e.id !== _currentEquipId ? e : { ...e, ...payload, departamento_nome: deptoNome || e.departamento_nome }
+    );
+    _atualizarStats();
+    _aplicarFiltros();
+    const res = await API.get(`/manutencao/equipamentos/${_currentEquipId}/prontuario`);
+    _renderProntuario(res.data || res);
+    document.querySelector('.pront-tab[data-tab="info"]').click();
+  } catch (err) {
+    errTxt.textContent = err.message || 'Erro ao salvar.';
+    errEl.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar Alterações';
+  }
+}
+
 // ── Status change ─────────────────────────────────────────────────────────────
 async function _mudarStatus(novoStatus) {
   if (!_currentEquipId) return;
@@ -878,6 +1091,16 @@ function _bindEvents() {
   document.getElementById('pront-btn-nova-os').addEventListener('click', () => {
     document.getElementById('modal-pront').style.display = 'none';
     window.location.href = `/pages/manutencao/index.html?equipamento=${_currentEquipId}`;
+  });
+
+  // Edit form
+  document.getElementById('pront-edit-save').addEventListener('click', _submitEditMaquina);
+  document.getElementById('pront-edit-cancel').addEventListener('click', () => {
+    document.querySelector('.pront-tab[data-tab="info"]').click();
+  });
+  document.getElementById('form-edit-maquina').addEventListener('submit', e => {
+    e.preventDefault();
+    _submitEditMaquina();
   });
 
   // Nova Máquina modal

@@ -46,7 +46,7 @@ async function run() {
     await conn.query(`USE \`${DB_NAME}\``);
     console.log(`[SETUP] Banco "${DB_NAME}" selecionado.`);
 
-    // 2. Migração incremental: dashboard_rota
+    // 2. Migrações incrementais
     {
       const [rows] = await conn.query(`SHOW TABLES LIKE 'usuarios'`);
       if (rows.length > 0) {
@@ -61,6 +61,19 @@ async function run() {
              AFTER foto_url`
           );
           console.log('[SETUP] Coluna dashboard_rota adicionada.');
+        }
+      }
+    }
+    {
+      const [rows] = await conn.query(`SHOW TABLES LIKE 'equipamentos'`);
+      if (rows.length > 0) {
+        const [[{ cnt }]] = await conn.query(
+          `SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS
+           WHERE TABLE_SCHEMA = '${DB_NAME}' AND TABLE_NAME = 'equipamentos' AND COLUMN_NAME = 'foto_url'`
+        );
+        if (cnt === 0) {
+          await conn.query(`ALTER TABLE equipamentos ADD COLUMN foto_url VARCHAR(500) DEFAULT NULL AFTER manual_pdf`);
+          console.log('[SETUP] Coluna foto_url adicionada à equipamentos.');
         }
       }
     }

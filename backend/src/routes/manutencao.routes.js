@@ -28,6 +28,26 @@ const upload = multer({
   },
 });
 
+// ── Multer: upload de fotos de equipamentos ───────────────────────────────────
+const fotosDir = path.join(__dirname, '../../uploads/equipamentos');
+if (!fs.existsSync(fotosDir)) fs.mkdirSync(fotosDir, { recursive: true });
+
+const imageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, fotosDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase().replace(/[^.a-z]/g, '') || '.jpg';
+    cb(null, `eq-${Date.now()}${ext}`);
+  },
+});
+const uploadImagem = multer({
+  storage: imageStorage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\/(jpeg|png|webp)$/.test(file.mimetype)) return cb(null, true);
+    cb(new Error('Apenas imagens são aceitas (JPG, PNG, WebP)'));
+  },
+});
+
 // ── Stats ─────────────────────────────────────────────────────────────────────
 router.get('/stats',
   authenticate, requireNivel(1),
@@ -109,6 +129,11 @@ router.post('/equipamentos/:id/manual',
   authenticate, requireNivel(2),
   upload.single('manual'),
   C.uploadManual.bind(C));
+
+router.post('/equipamentos/:id/foto',
+  authenticate, requireNivel(2),
+  uploadImagem.single('foto'),
+  C.uploadFotoEquipamento.bind(C));
 
 // ── Indicadores ───────────────────────────────────────────────────────────────
 router.get('/indicadores',
