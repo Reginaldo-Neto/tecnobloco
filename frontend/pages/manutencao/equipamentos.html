@@ -296,14 +296,6 @@
           <div class="pront-total-value" id="pront-tot-os">—</div>
           <div class="pront-total-label">Ordens de Serviço</div>
         </div>
-        <div class="pront-total-card">
-          <div class="pront-total-value" id="pront-tot-horas">—</div>
-          <div class="pront-total-label">Horas de Manutenção</div>
-        </div>
-        <div class="pront-total-card">
-          <div class="pront-total-value" id="pront-tot-custo">—</div>
-          <div class="pront-total-label">Custo Total (R$)</div>
-        </div>
       </div>
 
       <!-- Tabs -->
@@ -673,8 +665,6 @@ async function _abrirProntuario(id) {
   document.getElementById('pront-title').textContent      = 'Carregando...';
   document.getElementById('pront-subtitle').textContent   = '';
   document.getElementById('pront-tot-os').textContent     = '—';
-  document.getElementById('pront-tot-horas').textContent  = '—';
-  document.getElementById('pront-tot-custo').textContent  = '—';
   document.getElementById('pront-info-grid').innerHTML    = '<div class="page-loader"><span class="spinner"></span></div>';
   document.getElementById('pront-os-tbody').innerHTML     = '';
 
@@ -701,10 +691,7 @@ function _renderProntuario({ equipamento: eq, os, totais }) {
   document.getElementById('pront-footer-left').textContent = `Status: ${_statusLabel(eq.status)}`;
 
   // Totais
-  document.getElementById('pront-tot-os').textContent    = totais.total_os;
-  document.getElementById('pront-tot-horas').textContent = Number(totais.total_horas || 0).toFixed(1) + 'h';
-  document.getElementById('pront-tot-custo').textContent =
-    Number(totais.custo_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  document.getElementById('pront-tot-os').textContent = totais.total_os ?? '—';
 
   // Info grid
   const fields = [
@@ -725,24 +712,8 @@ function _renderProntuario({ equipamento: eq, os, totais }) {
     </div>
   `).join('');
 
-  // Status actions (nível >= 2)
-  const actions = document.getElementById('pront-status-actions');
-  if (_userNivel >= 2) {
-    const status = eq.status;
-    const btnMap = {
-      operacional:   [{ s:'em_manutencao', lbl:'🔧 Em Manutenção', cls:'btn-warning' }],
-      em_manutencao: [{ s:'operacional',   lbl:'✅ Operacional',    cls:'btn-success' }],
-      inativo:       [{ s:'operacional',   lbl:'✅ Reativar',       cls:'btn-success' }],
-    };
-    const btns = (btnMap[status] || []).concat([
-      status !== 'inativo' ? { s:'inativo', lbl:'⏸ Desativar', cls:'btn-secondary' } : null,
-    ]).filter(Boolean);
-    actions.innerHTML = btns.map(b =>
-      `<button class="btn btn-sm ${b.cls} btn-status-change" data-status="${b.s}">${b.lbl}</button>`
-    ).join('');
-  } else {
-    actions.innerHTML = '';
-  }
+  // Status — informativo apenas, sem botões de ação
+  document.getElementById('pront-status-actions').innerHTML = '';
 
   // OS table
   const osTbody = document.getElementById('pront-os-tbody');
@@ -1079,12 +1050,6 @@ function _bindEvents() {
     tab.classList.add('active');
     const panel = document.getElementById(`tab-${tab.dataset.tab}`);
     if (panel) panel.classList.add('active');
-  });
-
-  // Status actions (via delegation — botões renderizados dinamicamente)
-  document.getElementById('pront-status-actions').addEventListener('click', e => {
-    const btn = e.target.closest('.btn-status-change');
-    if (btn) _mudarStatus(btn.dataset.status);
   });
 
   // Nova OS a partir do prontuário — abre manutenção com o equipamento pré-selecionado via URL

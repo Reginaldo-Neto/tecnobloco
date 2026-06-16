@@ -24,7 +24,10 @@ class ManutencaoService {
     const [[{ preventivaProxima }]] = await pool.execute(
       `SELECT COUNT(*) AS preventivaProxima FROM manutencao_preventiva WHERE ativo = 1 AND proxima_data BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)`
     );
-    return { osAberta, osEmAndamento, osAguardando, osCritica, preventivaProxima };
+    const [[{ osConcluida30d }]] = await pool.execute(
+      `SELECT COUNT(*) AS osConcluida30d FROM ordens_servico WHERE status = 'concluida' AND data_conclusao >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`
+    );
+    return { osAberta, osEmAndamento, osAguardando, osCritica, preventivaProxima, osConcluida30d };
   }
 
   // ── Ordens de Serviço ────────────────────────────────────────────────────────

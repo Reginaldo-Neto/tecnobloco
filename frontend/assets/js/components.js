@@ -330,7 +330,7 @@ function _pollNotifCount() {
   async function check() {
     try {
       const data   = await API.get('/dashboard/alerts');
-      const alerts = Array.isArray(data) ? data : (data.items || []);
+      const alerts = (Array.isArray(data) ? data : (data.items || [])).filter(a => a.tipo !== 'success');
       const badge  = document.getElementById('notif-count');
       if (!badge) return;
       if (alerts.length > 0) {
@@ -351,7 +351,7 @@ async function _loadNotifDropdown() {
   if (!listEl) return;
   try {
     const data   = await API.get('/dashboard/alerts');
-    const alerts = Array.isArray(data) ? data : (data.items || data.data || []);
+    const alerts = (Array.isArray(data) ? data : (data.items || data.data || [])).filter(a => a.tipo !== 'success');
     if (!alerts.length) {
       listEl.innerHTML = '<div class="notif-dropdown-empty">Nenhuma notificação pendente</div>';
       return;
