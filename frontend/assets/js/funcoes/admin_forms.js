@@ -211,29 +211,41 @@ const AdminForms = {
           <option value="EXCLUSAO">Exclusão</option>
           <option value="LOGIN">Login</option>
         </select></div>
-        <div class="col-3"><input id="filt-data-ini" type="date" class="form-control form-control-sm" placeholder="De..."></div>
-        <div class="col-3"><button class="btn btn-primary btn-sm w-100" id="btn-filtrar-audit">Filtrar</button></div>
+        <div class="col-2"><input id="filt-data-ini" type="date" class="form-control form-control-sm" title="De"></div>
+        <div class="col-2"><input id="filt-data-fim" type="date" class="form-control form-control-sm" title="Até"></div>
+        <div class="col-2"><button class="btn btn-primary btn-sm w-100" id="btn-filtrar-audit">Filtrar</button></div>
       </div>
       <div id="audit-resultado">${_spinner()}</div>
     ` });
     const carregar = async () => {
       const params = new URLSearchParams();
-      const u = document.getElementById('filt-usuario')?.value; if (u) params.set('usuario', u);
-      const t = document.getElementById('filt-tipo')?.value; if (t) params.set('tipo_evento', t);
-      const d = document.getElementById('filt-data-ini')?.value; if (d) params.set('data_inicio', d);
-      params.set('limit', '50');
+      const u  = document.getElementById('filt-usuario')?.value;  if (u)  params.set('usuario', u);
+      const t  = document.getElementById('filt-tipo')?.value;     if (t)  params.set('tipo_evento', t);
+      const di = document.getElementById('filt-data-ini')?.value;
+      const df = document.getElementById('filt-data-fim')?.value;
+      if (di) params.set('data_inicio', di);
+      // when only one date is selected, treat it as an exact-day filter so it
+      // doesn't silently return all records from that date onwards
+      if (df) params.set('data_fim', df);
+      else if (di) params.set('data_fim', di);
       const res = document.getElementById('audit-resultado');
       if (res) res.innerHTML = _spinner();
-      const r = await API.get(`/admin/auditoria?${params}`);
-      if (!r.success || !res) return;
-      const rows = r.data.map(log => `<tr>
-        <td>${_fmtDate(log.criado_em)}</td>
-        <td>${log.usuario_nome || '—'}</td>
-        <td><span class="badge bg-${log.tipo_evento === 'CRIACAO' ? 'success' : log.tipo_evento === 'EXCLUSAO' ? 'danger' : 'warning'}">${log.tipo_evento}</span></td>
-        <td>${log.tabela_afetada || '—'}</td>
-        <td>${log.registro_id || '—'}</td>
-      </tr>`).join('');
-      res.innerHTML = rows ? `<table class="table table-sm table-hover"><thead><tr><th>Data</th><th>Usuário</th><th>Tipo</th><th>Tabela</th><th>ID</th></tr></thead><tbody>${rows}</tbody></table>` : _empty('Nenhum log encontrado.');
+      try {
+        const r = await API.get(`/admin/auditoria?${params}`);
+        if (!r.success || !res) return;
+        const rows = r.data.map(log => `<tr>
+          <td>${_fmtDate(log.criado_em)}</td>
+          <td>${log.usuario_nome || '—'}</td>
+          <td><span class="badge bg-${log.tipo_evento === 'CRIACAO' ? 'success' : log.tipo_evento === 'EXCLUSAO' ? 'danger' : 'warning'}">${log.tipo_evento}</span></td>
+          <td>${log.tabela_afetada || '—'}</td>
+          <td>${log.registro_id || '—'}</td>
+        </tr>`).join('');
+        res.innerHTML = rows
+          ? `<table class="table table-sm table-hover"><thead><tr><th>Data/Hora</th><th>Usuário</th><th>Tipo</th><th>Tabela</th><th>ID</th></tr></thead><tbody>${rows}</tbody></table>`
+          : _empty('Nenhum log encontrado para este filtro.');
+      } catch (err) {
+        if (res) res.innerHTML = _empty('Erro ao carregar: ' + escapeHtml(err.message || 'falha na requisição'));
+      }
     };
     await carregar();
     document.getElementById('btn-filtrar-audit')?.addEventListener('click', carregar);
