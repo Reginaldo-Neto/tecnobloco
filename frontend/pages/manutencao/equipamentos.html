@@ -282,9 +282,23 @@
 <div id="modal-pront" class="modal-backdrop modal-overlay" style="display:none;">
   <div class="modal modal-xl" role="dialog" aria-modal="true">
     <div class="modal-header">
-      <div>
-        <h3 class="modal-title" id="pront-title">Prontuário</h3>
-        <div style="font-size:var(--font-size-xs); color:var(--text-muted); margin-top:2px;" id="pront-subtitle"></div>
+      <div style="display:flex;align-items:center;gap:var(--space-3);">
+        <div style="position:relative;flex-shrink:0;">
+          <div id="pront-equip-foto"
+               title="Clique para ver/alterar foto"
+               style="width:64px;height:64px;border-radius:var(--border-radius);background:var(--bg-hover);
+                      overflow:hidden;display:flex;align-items:center;justify-content:center;
+                      font-size:28px;cursor:pointer;border:2px solid var(--border-color);">🔧</div>
+          <div id="pront-foto-cam-badge"
+               style="position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;
+                      background:var(--color-primary);border-radius:50%;display:flex;
+                      align-items:center;justify-content:center;font-size:11px;
+                      cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4);">📷</div>
+        </div>
+        <div>
+          <h3 class="modal-title" id="pront-title">Prontuário</h3>
+          <div style="font-size:var(--font-size-xs); color:var(--text-muted); margin-top:2px;" id="pront-subtitle"></div>
+        </div>
       </div>
       <button class="modal-close" id="pront-close" aria-label="Fechar">✕</button>
     </div>
@@ -665,6 +679,7 @@ async function _abrirProntuario(id) {
   document.getElementById('pront-title').textContent      = 'Carregando...';
   document.getElementById('pront-subtitle').textContent   = '';
   document.getElementById('pront-tot-os').textContent     = '—';
+  document.getElementById('pront-equip-foto').textContent = '🔧';
   document.getElementById('pront-info-grid').innerHTML    = '<div class="page-loader"><span class="spinner"></span></div>';
   document.getElementById('pront-os-tbody').innerHTML     = '';
 
@@ -689,6 +704,19 @@ function _renderProntuario({ equipamento: eq, os, totais }) {
   document.getElementById('pront-title').textContent    = eq.nome;
   document.getElementById('pront-subtitle').textContent = eq.codigo ? `TAG: ${eq.codigo}` : '';
   document.getElementById('pront-footer-left').textContent = `Status: ${_statusLabel(eq.status)}`;
+
+  // Header photo thumbnail
+  const fotoThumb = document.getElementById('pront-equip-foto');
+  const fotoCam   = document.getElementById('pront-foto-cam-badge');
+  if (eq.foto_url) {
+    fotoThumb.innerHTML = `<img src="${escapeHtml(eq.foto_url)}" alt="${escapeHtml(eq.nome)}"
+      style="width:100%;height:100%;object-fit:cover;" />`;
+  } else {
+    fotoThumb.textContent = '🔧';
+  }
+  const goFoto = () => document.querySelector('.pront-tab[data-tab="foto"]').click();
+  fotoThumb.onclick = goFoto;
+  fotoCam.onclick   = goFoto;
 
   // Totais
   document.getElementById('pront-tot-os').textContent = totais.total_os ?? '—';

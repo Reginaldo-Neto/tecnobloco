@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS equipamentos (
   status ENUM('operacional','em_manutencao','inativo','sucata') DEFAULT 'operacional',
   localizacao VARCHAR(200),
   manual_pdf VARCHAR(500) NULL COMMENT 'Caminho para o PDF do manual do equipamento',
+  foto_url VARCHAR(500) NULL COMMENT 'Caminho para a foto da máquina',
   FOREIGN KEY (departamento_id) REFERENCES departamentos(id)
 );
 
